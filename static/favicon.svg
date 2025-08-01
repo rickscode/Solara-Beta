@@ -1,0 +1,7 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Black background -->
+  <rect width="32" height="32" fill="#000000"/>
+  
+  <!-- White lightning bolt -->
+  <path d="M18 2L10 14h6v16l8-12h-6V2z" fill="#ffffff" stroke="none"/>
+</svg>

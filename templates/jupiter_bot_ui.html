@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jupiter Bot UI - Simple Test Interface</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body class="bg-dark text-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-rocket-takeoff"></i>
+                Jupiter Bot UI (Test)
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text">
+                    <span id="bot-status-badge" class="badge bg-secondary">Stopped</span>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        
+        <!-- Alert Section -->
+        <div id="alert-container"></div>
+        
+        <!-- Bot Configuration -->
+        <div class="row mb-4">
+            <div class="col-lg-8">
+                <div class="card bg-secondary">
+                    <div class="card-header">
+                        <h5><i class="bi bi-gear"></i> Bot Configuration</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="config-form">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="token-address" class="form-label">Token Address</label>
+                                        <input type="text" class="form-control" id="token-address" 
+                                               value="{{ config.token_address }}" required>
+                                        <div class="form-text">Solana token contract address to trade</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="token-symbol" class="form-label">Token Symbol</label>
+                                        <input type="text" class="form-control" id="token-symbol" 
+                                               value="{{ config.token_symbol }}" required>
+                                        <div class="form-text">Token symbol for display</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="amount-to-trade" class="form-label">Amount to Trade (SOL)</label>
+                                        <input type="number" class="form-control" id="amount-to-trade" 
+                                               value="{{ config.amount_to_trade }}" step="0.01" min="0.01" required>
+                                        <div class="form-text">Amount in SOL to trade per transaction</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="target-buy-price" class="form-label">Target Buy Price (USD)</label>
+                                        <input type="number" class="form-control" id="target-buy-price" 
+                                               value="{{ config.target_buy_price }}" step="0.000001" required>
+                                        <div class="form-text">Price at which to buy the token</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="target-sell-price" class="form-label">Target Sell Price (USD)</label>
+                                        <input type="number" class="form-control" id="target-sell-price" 
+                                               value="{{ config.target_sell_price }}" step="0.000001" required>
+                                        <div class="form-text">Price at which to sell the token</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="stop-loss-percentage" class="form-label">Stop Loss (%)</label>
+                                        <input type="number" class="form-control" id="stop-loss-percentage" 
+                                               value="{{ config.stop_loss_percentage }}" min="1" max="90" required>
+                                        <div class="form-text">Stop loss percentage below buy price</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="slippage-bps" class="form-label">Slippage (BPS)</label>
+                                        <input type="number" class="form-control" id="slippage-bps" 
+                                               value="{{ config.slippage_bps }}" min="10" max="1000" required>
+                                        <div class="form-text">Slippage tolerance in basis points (200 = 2%)</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Save Configuration
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card bg-secondary">
+                    <div class="card-header">
+                        <h5><i class="bi bi-play-circle"></i> Bot Control</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="bot-status" class="mb-3">
+                            <h6>Status: <span id="status-text" class="text-warning">Stopped</span></h6>
+                            <p id="status-details" class="text-muted">Bot is not running</p>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success" id="start-bot-btn">
+                                <i class="bi bi-play-fill"></i> Start Bot
+                            </button>
+                            <button class="btn btn-danger" id="stop-bot-btn" disabled>
+                                <i class="bi bi-stop-fill"></i> Stop Bot
+                            </button>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button class="btn btn-info btn-sm" id="refresh-status-btn">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh Status
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-secondary mt-3">
+                    <div class="card-header">
+                        <h6><i class="bi bi-info-circle"></i> Quick Info</h6>
+                    </div>
+                    <div class="card-body">
+                        <small class="text-muted">
+                            <p><strong>Bot Type:</strong> Jupiter Limit Order</p>
+                            <p><strong>Mode:</strong> Buy → Monitor → Sell</p>
+                            <p><strong>Price Source:</strong> DexScreener API</p>
+                            <p><strong>DEX:</strong> Jupiter Aggregator</p>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Price Feed Section -->
+        <div class="row mb-4">
+            <div class="col-lg-6">
+                <div class="card bg-secondary">
+                    <div class="card-header">
+                        <h6><i class="bi bi-graph-up-arrow"></i> Live Price Feed</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="price-display">
+                            <div class="row">
+                                <div class="col-6">
+                                    <p><strong>USD Price:</strong> $<span id="current-price-usd">--</span></p>
+                                    <p><strong>SOL Price:</strong> <span id="current-price-sol">--</span> SOL</p>
+                                </div>
+                                <div class="col-6">
+                                    <p><strong>24h Change:</strong> <span id="price-change-24h">--</span></p>
+                                    <p><strong>Updated:</strong> <span id="price-timestamp">--</span></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-muted">Target Buy: ${{ config.target_buy_price }}</small>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Target Sell: ${{ config.target_sell_price }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card bg-secondary">
+                    <div class="card-header">
+                        <h6><i class="bi bi-bullseye"></i> Price Targets</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="price-analysis">
+                            <div class="mb-2">
+                                <span class="badge bg-success" id="buy-signal" style="display: none;">
+                                    <i class="bi bi-arrow-down"></i> BUY SIGNAL
+                                </span>
+                                <span class="badge bg-danger" id="sell-signal" style="display: none;">
+                                    <i class="bi bi-arrow-up"></i> SELL SIGNAL
+                                </span>
+                                <span class="badge bg-warning" id="hold-signal" style="display: none;">
+                                    <i class="bi bi-pause"></i> HOLD
+                                </span>
+                            </div>
+                            
+                            <div class="progress mb-2" style="height: 20px;">
+                                <div id="price-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <small>Buy: $<span id="target-buy-display">{{ config.target_buy_price }}</span></small>
+                                <small>Current</small>
+                                <small>Sell: $<span id="target-sell-display">{{ config.target_sell_price }}</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Configuration Display -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card bg-secondary">
+                    <div class="card-header">
+                        <h6><i class="bi bi-list-check"></i> Current Configuration Summary</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="config-summary" class="row">
+                            <div class="col-md-3">
+                                <small><strong>Token:</strong> <span id="summary-token">{{ config.token_symbol }}</span></small>
+                            </div>
+                            <div class="col-md-3">
+                                <small><strong>Buy Price:</strong> $<span id="summary-buy">{{ config.target_buy_price }}</span></small>
+                            </div>
+                            <div class="col-md-3">
+                                <small><strong>Sell Price:</strong> $<span id="summary-sell">{{ config.target_sell_price }}</span></small>
+                            </div>
+                            <div class="col-md-3">
+                                <small><strong>Amount:</strong> <span id="summary-amount">{{ config.amount_to_trade }}</span> SOL</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Simple Custom JS -->
+    <script>
+        // Force cache refresh
+        console.log('JavaScript loaded - Version 2.0');
+    </script>
+    <script>
+        class JupiterBotUI {
+            constructor() {
+                this.priceInterval = null;
+                this.currentTokenAddress = '{{ config.token_address }}';
+                this.initEventListeners();
+                this.loadBotStatus();
+                
+                // Auto-start price feed on page load (like terminal bot)
+                if (this.currentTokenAddress && this.currentTokenAddress.length > 10) {
+                    setTimeout(() => {
+                        this.startPriceFeed();
+                    }, 2000); // Start after 2 seconds
+                }
+                
+                // Auto refresh status every 5 seconds
+                setInterval(() => {
+                    this.loadBotStatus();
+                }, 5000);
+            }
+            
+            initEventListeners() {
+                // Configuration form
+                document.getElementById('config-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveConfiguration();
+                });
+                
+                // Bot control buttons
+                document.getElementById('start-bot-btn').addEventListener('click', () => {
+                    this.startBot();
+                });
+                
+                document.getElementById('stop-bot-btn').addEventListener('click', () => {
+                    this.stopBot();
+                });
+                
+                document.getElementById('refresh-status-btn').addEventListener('click', () => {
+                    this.loadBotStatus();
+                });
+                
+                // Price feed button removed - now auto-starts
+                
+                // Update summary and token address when inputs change
+                document.querySelectorAll('#config-form input').forEach(input => {
+                    input.addEventListener('input', () => {
+                        this.updateConfigSummary();
+                        if (input.id === 'token-address') {
+                            this.currentTokenAddress = input.value;
+                        }
+                    });
+                });
+            }
+            
+            async saveConfiguration() {
+                try {
+                    const config = {
+                        token_address: document.getElementById('token-address').value,
+                        token_symbol: document.getElementById('token-symbol').value,
+                        target_buy_price: parseFloat(document.getElementById('target-buy-price').value),
+                        target_sell_price: parseFloat(document.getElementById('target-sell-price').value),
+                        stop_loss_percentage: parseFloat(document.getElementById('stop-loss-percentage').value),
+                        amount_to_trade: parseFloat(document.getElementById('amount-to-trade').value),
+                        slippage_bps: parseInt(document.getElementById('slippage-bps').value)
+                    };
+                    
+                    const response = await fetch('/api/config', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(config)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.showAlert('success', 'Configuration saved successfully!');
+                        this.updateConfigSummary();
+                    } else {
+                        this.showAlert('danger', `Failed to save configuration: ${result.error}`);
+                    }
+                    
+                } catch (error) {
+                    this.showAlert('danger', `Error saving configuration: ${error.message}`);
+                }
+            }
+            
+            async startBot() {
+                try {
+                    const response = await fetch('/api/bot/start', {
+                        method: 'POST'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.showAlert('success', result.message);
+                        this.loadBotStatus();
+                        
+                        // Automatically start price feed when bot starts (if not already running)
+                        if (!this.priceInterval) {
+                            this.startPriceFeed();
+                        }
+                    } else {
+                        this.showAlert('danger', `Failed to start bot: ${result.error}`);
+                    }
+                    
+                } catch (error) {
+                    this.showAlert('danger', `Error starting bot: ${error.message}`);
+                }
+            }
+            
+            async stopBot() {
+                try {
+                    const response = await fetch('/api/bot/stop', {
+                        method: 'POST'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.showAlert('warning', result.message);
+                        this.loadBotStatus();
+                        
+                        // Automatically stop price feed when bot stops
+                        if (this.priceInterval) {
+                            clearInterval(this.priceInterval);
+                            this.priceInterval = null;
+                        }
+                    } else {
+                        this.showAlert('danger', `Failed to stop bot: ${result.error}`);
+                    }
+                    
+                } catch (error) {
+                    this.showAlert('danger', `Error stopping bot: ${error.message}`);
+                }
+            }
+            
+            async loadBotStatus() {
+                try {
+                    const response = await fetch('/api/bot/status');
+                    const status = await response.json();
+                    
+                    const statusBadge = document.getElementById('bot-status-badge');
+                    const statusText = document.getElementById('status-text');
+                    const statusDetails = document.getElementById('status-details');
+                    const startBtn = document.getElementById('start-bot-btn');
+                    const stopBtn = document.getElementById('stop-bot-btn');
+                    
+                    if (status.running) {
+                        statusBadge.textContent = 'Running';
+                        statusBadge.className = 'badge bg-success';
+                        statusText.textContent = 'Running';
+                        statusText.className = 'text-success';
+                        statusDetails.textContent = `PID: ${status.pid}`;
+                        startBtn.disabled = true;
+                        stopBtn.disabled = false;
+                    } else {
+                        statusBadge.textContent = 'Stopped';
+                        statusBadge.className = 'badge bg-secondary';
+                        statusText.textContent = 'Stopped';
+                        statusText.className = 'text-warning';
+                        statusDetails.textContent = 'Bot is not running';
+                        startBtn.disabled = false;
+                        stopBtn.disabled = true;
+                    }
+                    
+                } catch (error) {
+                    console.error('Error loading bot status:', error);
+                }
+            }
+            
+            
+            startPriceFeed() {
+                // Get initial price
+                this.updatePrice();
+                
+                // Update every 15 seconds (same as terminal bot)
+                this.priceInterval = setInterval(() => {
+                    this.updatePrice();
+                }, 15000);
+            }
+            
+            async updatePrice() {
+                try {
+                    const response = await fetch(`/api/price/${this.currentTokenAddress}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Update price display
+                        document.getElementById('current-price-usd').textContent = data.price_usd.toFixed(6);
+                        document.getElementById('current-price-sol').textContent = data.price_sol.toFixed(8);
+                        
+                        const change = data.change_24h || 0;
+                        const changeElement = document.getElementById('price-change-24h');
+                        changeElement.textContent = `${change.toFixed(2)}%`;
+                        changeElement.className = change >= 0 ? 'text-success' : 'text-danger';
+                        
+                        document.getElementById('price-timestamp').textContent = new Date().toLocaleTimeString();
+                        
+                        // Update price analysis
+                        this.updatePriceAnalysis(data.price_usd);
+                        
+                    } else {
+                        document.getElementById('current-price-usd').textContent = 'Error';
+                        document.getElementById('current-price-sol').textContent = 'Error';
+                    }
+                    
+                } catch (error) {
+                    console.error('Error fetching price:', error);
+                    document.getElementById('current-price-usd').textContent = 'Error';
+                    document.getElementById('current-price-sol').textContent = 'Error';
+                }
+            }
+            
+            updatePriceAnalysis(currentPrice) {
+                const buyPrice = parseFloat(document.getElementById('target-buy-price').value);
+                const sellPrice = parseFloat(document.getElementById('target-sell-price').value);
+                
+                // Update target displays
+                document.getElementById('target-buy-display').textContent = buyPrice.toFixed(6);
+                document.getElementById('target-sell-display').textContent = sellPrice.toFixed(6);
+                
+                // Hide all signals first
+                document.getElementById('buy-signal').style.display = 'none';
+                document.getElementById('sell-signal').style.display = 'none';
+                document.getElementById('hold-signal').style.display = 'none';
+                
+                // Show appropriate signal
+                if (currentPrice <= buyPrice) {
+                    document.getElementById('buy-signal').style.display = 'inline-block';
+                } else if (currentPrice >= sellPrice) {
+                    document.getElementById('sell-signal').style.display = 'inline-block';
+                } else {
+                    document.getElementById('hold-signal').style.display = 'inline-block';
+                }
+                
+                // Update progress bar
+                const priceRange = sellPrice - buyPrice;
+                const currentPosition = currentPrice - buyPrice;
+                const percentage = Math.max(0, Math.min(100, (currentPosition / priceRange) * 100));
+                
+                const progressBar = document.getElementById('price-progress');
+                progressBar.style.width = `${percentage}%`;
+                
+                if (currentPrice <= buyPrice) {
+                    progressBar.className = 'progress-bar bg-success';
+                } else if (currentPrice >= sellPrice) {
+                    progressBar.className = 'progress-bar bg-danger';
+                } else {
+                    progressBar.className = 'progress-bar bg-warning';
+                }
+            }
+            
+            updateConfigSummary() {
+                document.getElementById('summary-token').textContent = document.getElementById('token-symbol').value;
+                document.getElementById('summary-buy').textContent = document.getElementById('target-buy-price').value;
+                document.getElementById('summary-sell').textContent = document.getElementById('target-sell-price').value;
+                document.getElementById('summary-amount').textContent = document.getElementById('amount-to-trade').value;
+            }
+            
+            showAlert(type, message) {
+                const alertContainer = document.getElementById('alert-container');
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type} alert-dismissible fade show`;
+                alert.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                
+                alertContainer.appendChild(alert);
+                
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.remove();
+                    }
+                }, 5000);
+            }
+        }
+        
+        // Initialize the UI when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new JupiterBotUI();
+        });
+    </script>
+</body>
+</html>

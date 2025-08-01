@@ -1,0 +1,3292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solara (Beta)</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    
+    <style>
+        /* ChatGPT-Style Clean Interface */
+        body {
+            background-color: #f8f9fa !important;
+            color: #2d3748 !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        }
+        
+        .trading-stats {
+            background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .price-positive {
+            color: #38a169 !important;
+            font-weight: 600;
+        }
+        
+        .price-negative {
+            color: #e53e3e !important;
+            font-weight: 600;
+        }
+        
+        /* Custom Radio Button Styling - Black Theme */
+        .form-check input[type="radio"] {
+            border-color: #6c757d;
+        }
+        
+        .form-check input[type="radio"]:checked {
+            background-color: #212529 !important;
+            border-color: #212529 !important;
+        }
+        
+        .form-check input[type="radio"]:focus {
+            border-color: #212529 !important;
+            box-shadow: 0 0 0 0.25rem rgba(33, 37, 41, 0.25) !important;
+        }
+        
+        /* Custom Accordion Styling - Black Theme */
+        .accordion-button:not(.collapsed) {
+            background-color: #212529 !important;
+            color: #ffffff !important;
+            border-color: #212529 !important;
+        }
+        
+        .accordion-button:not(.collapsed) i {
+            color: #ffffff !important;
+        }
+        
+        .accordion-button:focus {
+            border-color: #212529 !important;
+            box-shadow: 0 0 0 0.25rem rgba(33, 37, 41, 0.25) !important;
+        }
+        
+        .accordion-button:hover {
+            background-color: #495057 !important;
+        }
+        
+        .stat-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-1px);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 450px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 8px;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-running {
+            background-color: #38a169;
+            box-shadow: 0 0 0 2px rgba(56, 161, 105, 0.2);
+        }
+        
+        .status-stopped {
+            background-color: #a0aec0;
+        }
+        
+        /* Modern Card Styling */
+        .card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            background: #ffffff;
+        }
+        
+        .card-header {
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 1rem 1.25rem;
+        }
+        
+        .card-body {
+            padding: 1.25rem;
+        }
+        
+        /* Rugcheck Risk Level Styling */
+        .risk-excellent {
+            color: #38a169 !important;
+            font-weight: 600;
+        }
+        
+        .risk-good {
+            color: #3182ce !important;
+            font-weight: 600;
+        }
+        
+        .risk-moderate {
+            color: #d69e2e !important;
+            font-weight: 600;
+        }
+        
+        .risk-high {
+            color: #dd6b20 !important;
+            font-weight: 600;
+        }
+        
+        .risk-very-high {
+            color: #e53e3e !important;
+            font-weight: 600;
+        }
+        
+        .risk-rugged {
+            color: #e53e3e !important;
+            background-color: #fed7d7;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        
+        .security-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-left: 4px;
+        }
+        
+        .badge-safe {
+            background-color: #c6f6d5;
+            color: #2f855a;
+        }
+        
+        .badge-warning {
+            background-color: #faf089;
+            color: #975a16;
+        }
+        
+        .badge-danger {
+            background-color: #fed7d7;
+            color: #c53030;
+        }
+        
+        /* Modern Form Controls */
+        .form-control {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #2d3748;
+            font-size: 0.875rem;
+        }
+        
+        .form-control:focus {
+            border-color: #3182ce;
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+            background: #ffffff;
+        }
+        
+        /* Modern Buttons */
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: #3182ce;
+            border-color: #3182ce;
+        }
+        
+        .btn-primary:hover {
+            background: #2c5282;
+            border-color: #2c5282;
+            transform: translateY(-1px);
+        }
+        
+        .btn-success {
+            background: #38a169;
+            border-color: #38a169;
+        }
+        
+        .btn-success:hover {
+            background: #2f855a;
+            border-color: #2f855a;
+            transform: translateY(-1px);
+        }
+        
+        .btn-danger {
+            background: #e53e3e;
+            border-color: #e53e3e;
+        }
+        
+        .btn-danger:hover {
+            background: #c53030;
+            border-color: #c53030;
+            transform: translateY(-1px);
+        }
+        
+        .btn-info {
+            background: #3182ce;
+            border-color: #3182ce;
+            color: #ffffff;
+        }
+        
+        .btn-info:hover {
+            background: #2c5282;
+            border-color: #2c5282;
+            color: #ffffff;
+        }
+        
+        /* Analysis Results Styling */
+        #analysis-results {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            color: #2d3748;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.875rem;
+        }
+        
+        /* Table Styling */
+        .table {
+            color: #2d3748;
+        }
+        
+        .table th {
+            border-color: #e2e8f0;
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        .table td {
+            border-color: #e2e8f0;
+        }
+        
+        /* Navigation */
+        .navbar {
+            background: #000000 !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+        }
+        
+        /* State-based styling for stat cards */
+        .stat-loading {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading-shimmer 1.5s infinite;
+            color: #a0aec0 !important;
+        }
+        
+        @keyframes loading-shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .stat-error {
+            background: #fed7d7 !important;
+            border-color: #fc8181 !important;
+            color: #c53030 !important;
+        }
+        
+        .stat-success {
+            background: #c6f6d5 !important;
+            border-color: #68d391 !important;
+            color: #2f855a !important;
+        }
+        
+        .loading-text {
+            color: #a0aec0;
+            font-style: italic;
+        }
+        
+        .error-text {
+            color: #c53030;
+            font-weight: 500;
+        }
+        
+        .success-text {
+            color: #2f855a;
+            font-weight: 500;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 50%;
+            border-top-color: #3182ce;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Alert Styling */
+        .alert {
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+        
+        .alert-danger {
+            background: #fed7d7;
+            color: #c53030;
+        }
+        
+        .alert-warning {
+            background: #faf089;
+            color: #975a16;
+        }
+        
+        /* Individual Stats Cards Enhancement */
+        .stats-card {
+            transition: all 0.2s ease;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+        }
+        
+        .stats-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .stats-card .card-title {
+            font-size: 0.8rem;
+            color: #718096;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stats-card h4 {
+            font-weight: 700;
+            color: #2d3748;
+            font-size: 1.5rem;
+        }
+        
+        .stats-card small {
+            color: #a0aec0;
+            font-size: 0.75rem;
+        }
+        
+        /* Risk Assessment Card Special Styling */
+        .risk-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+        }
+        
+        .risk-card .card-body {
+            padding: 1rem;
+        }
+        
+        /* Mobile Responsive Enhancements */
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+            
+            .card {
+                margin-bottom: 1rem;
+            }
+            
+            .card-body {
+                padding: 1rem;
+            }
+            
+            .trading-stats .card-body {
+                padding: 0.75rem;
+            }
+            
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+                min-height: 44px; /* Touch-friendly minimum size */
+            }
+            
+            .form-control {
+                padding: 0.5rem 0.75rem;
+                font-size: 1rem; /* Prevent zoom on iOS */
+                min-height: 44px;
+            }
+            
+            .navbar-brand {
+                font-size: 1.25rem;
+            }
+            
+            .table {
+                font-size: 0.8rem;
+            }
+            
+            #llm-analysis-container {
+                min-height: 300px !important;
+            }
+            
+            .stat-card {
+                padding: 0.75rem;
+            }
+        }
+        
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .btn:hover {
+                transform: none;
+            }
+            
+            .card:hover {
+                transform: none;
+            }
+            
+            .stat-card:hover {
+                transform: none;
+            }
+        }
+        
+        /* Ensure proper font sizing on mobile */
+        .fs-6 {
+            font-size: 0.875rem !important;
+        }
+        
+        .fs-md-5 {
+            font-size: 0.875rem !important;
+        }
+        
+        @media (min-width: 768px) {
+            .fs-md-5 {
+                font-size: 1.25rem !important;
+            }
+        }
+        
+        /* Terminal Output Styling */
+        .terminal-display {
+            background: #1a1d23;
+            color: #e2e8f0;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            height: 400px;
+            overflow-y: auto;
+            border-radius: 0 0 12px 12px;
+        }
+        
+        .terminal-content {
+            padding: 1rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .terminal-line {
+            margin-bottom: 2px;
+        }
+        
+        .terminal-timestamp {
+            color: #a0aec0;
+            margin-right: 8px;
+        }
+        
+        .terminal-level-info {
+            color: #63b3ed;
+        }
+        
+        .terminal-level-warn {
+            color: #f6ad55;
+        }
+        
+        .terminal-level-error {
+            color: #fc8181;
+        }
+        
+        .terminal-level-success {
+            color: #68d391;
+        }
+        
+        .terminal-critical-error {
+            background-color: #742a2a;
+            color: #feb2b2 !important;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        
+        /* Terminal scrollbar */
+        .terminal-display::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .terminal-display::-webkit-scrollbar-track {
+            background: #2d3748;
+        }
+        
+        .terminal-display::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 4px;
+        }
+        
+        .terminal-display::-webkit-scrollbar-thumb:hover {
+            background: #617489;
+        }
+        
+        /* Terminal in right column styling */
+        .terminal-right-column {
+            height: 300px !important; /* Fixed height to match column layout */
+        }
+        
+        @media (max-width: 991px) {
+            .terminal-right-column {
+                height: 250px !important; /* Smaller height on mobile */
+            }
+        }
+        
+        /* Height matching for desktop layouts */
+        @media (min-width: 992px) {
+            .height-match-row {
+                display: flex;
+                align-items: stretch;
+            }
+            
+            .ai-analysis-card {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+            }
+            
+            .ai-analysis-card .card-body {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .analysis-input-section {
+                flex-shrink: 0; /* Don't shrink the input section */
+            }
+            
+            .analysis-content-container {
+                flex: 1;
+                min-height: 400px;
+                position: relative;
+            }
+            
+            /* Ensure analysis states fill the container properly */
+            .analysis-content-container > div {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+            }
+            
+            #analysis-content {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            #analysis-loading {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            #analysis-results {
+                overflow-y: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: #000000;">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="#" style="color: #ffffff;">
+                <i class="bi bi-lightning-charge-fill"></i>
+                Solara (Beta Edition)
+            </a>
+            <div class="navbar-nav ms-auto">
+                <button type="button" class="btn btn-outline-light btn-sm me-3" id="setup-btn" data-bs-toggle="modal" data-bs-target="#setupModal">
+                    <i class="bi bi-gear-fill"></i> Setup
+                </button>
+                <span class="navbar-text" style="color: #ffffff;">
+                    <span class="status-indicator" id="status-indicator"></span>
+                    <span id="bot-status-text">Stopped</span>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Trading Interface -->
+    <div class="container-fluid mt-3">
+        
+        <!-- Alert Section -->
+        <div id="alert-container"></div>
+        
+        <!-- Token Statistics Cards -->
+        <div class="row g-3 mb-4">
+            <!-- Row 1: Price and Time-based Changes -->
+            <!-- Price Card -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 stats-card">
+                    <div class="card-body text-center py-3">
+                        <h6 class="card-title mb-2">Price</h6>
+                        <h4 class="mb-1" id="header-price">$<span id="price-display">--</span></h4>
+                        <small class="text-muted"><span id="price-sol-display">--</span> SOL</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 5min Change Card -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 stats-card">
+                    <div class="card-body text-center py-3">
+                        <h6 class="card-title mb-2">5m Change</h6>
+                        <h4 class="mb-0" id="price-change-5m-display">--</h4>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 1hr Change Card -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 stats-card">
+                    <div class="card-body text-center py-3">
+                        <h6 class="card-title mb-2">1h Change</h6>
+                        <h4 class="mb-0" id="price-change-1h-display">--</h4>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 6hr Change Card -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 stats-card">
+                    <div class="card-body text-center py-3">
+                        <h6 class="card-title mb-2">6h Change</h6>
+                        <h4 class="mb-0" id="price-change-6h-display">--</h4>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Row 2: Market Data -->
+            <!-- 24h Change Card -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 stats-card">
+                    <div class="card-body text-center py-3">
+                        <h6 class="card-title mb-2">24h Change</h6>
+                        <h4 class="mb-0" id="price-change-display">--</h4>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Liquidity Card -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 stats-card">
+                    <div class="card-body text-center py-3">
+                        <h6 class="card-title mb-2">Liquidity</h6>
+                        <h4 class="mb-1">$<span id="liquidity-display">--</span></h4>
+                        <div class="d-flex align-items-center justify-content-center">
+                            <i id="liquidity-lock-icon" class="me-1"></i>
+                            <small id="liquidity-lock-text" class="fw-bold">--</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Volume 24h Card -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 stats-card">
+                    <div class="card-body text-center py-3">
+                        <h6 class="card-title mb-2">Volume 24h</h6>
+                        <h4 class="mb-0">$<span id="volume-display">--</span></h4>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Market Cap Card -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 stats-card">
+                    <div class="card-body text-center py-3">
+                        <h6 class="card-title mb-2">Market Cap</h6>
+                        <h4 class="mb-0">$<span id="mcap-display">--</span></h4>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Risk Assessment Card -->
+            <div class="col-12 col-md-8 col-lg-12">
+                <div class="card h-100 risk-card">
+                    <div class="card-body py-3">
+                        <div class="row align-items-center">
+                            <div class="col-12 col-md-3 text-center">
+                                <h6 class="card-title mb-1 text-muted small">Risk Assessment</h6>
+                                <h4 class="mb-1" id="rugcheck-score-display">--</h4>
+                                <small class="d-block fw-bold" id="rugcheck-level-display">--</small>
+                            </div>
+                            <div class="col-12 col-md-9">
+                                <div class="row text-center text-md-start">
+                                    <div class="col-6 col-md-3">
+                                        <small class="text-muted d-block" id="rugcheck-holders-display">-- holders</small>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <small class="text-muted d-block" id="rugcheck-markets-display">-- markets</small>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <small class="text-muted d-block">LP: <span id="lp-locked-display">--</span></small>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div id="rugcheck-status-display">--</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Moralis Chart Widget Section -->
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-graph-up text-primary"></i> 
+                            <span id="chart-widget-title">Price Chart</span>
+                            <small class="text-muted ms-2">
+                                <span class="token-symbol">TOKEN</span>
+                            </small>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <!-- Chart Token Address Input -->
+                        <div class="mb-3">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-12 col-md-10">
+                                    <label for="chart-token-address" class="form-label form-label-sm">Token Address</label>
+                                    <input type="text" class="form-control form-control-sm" id="chart-token-address" 
+                                           value="{{ config.token_address }}" 
+                                           placeholder="Enter Solana token address to view chart">
+                                </div>
+                                <div class="col-12 col-md-2">
+                                    <button type="button" class="btn btn-primary btn-sm w-100" id="load-chart-btn">
+                                        <i class="bi bi-graph-up"></i> Load Chart
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Chart Container -->
+                        <div id="moralis-chart-container" class="chart-container">
+                            <div id="price-chart-widget-container" style="width: 100%; height: 400px;"></div>
+                            <div id="chart-loading" class="text-center py-5" style="display: none;">
+                                <div class="spinner-border text-primary mb-3" role="status">
+                                    <span class="visually-hidden">Loading chart...</span>
+                                </div>
+                                <h6 class="text-muted">Loading price chart...</h6>
+                            </div>
+                            <div id="chart-error" class="text-center py-5" style="display: none;">
+                                <i class="bi bi-graph-up text-muted mb-2" style="font-size: 2rem;"></i>
+                                <h6 class="text-muted">Please enter token address to enable chart</h6>
+                                <small class="text-muted">Enter a valid Solana token address above</small>
+                            </div>
+                            <div id="chart-empty" class="text-center py-5">
+                                <i class="bi bi-graph-up text-muted mb-2" style="font-size: 2rem;"></i>
+                                <h6 class="text-muted">Ready to load chart</h6>
+                                <small class="text-muted">Enter a token address above to view price chart</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Trading Layout -->
+        <div class="row g-3 height-match-row">
+            <!-- AI Analysis Section -->
+            <div class="col-12 col-lg-8 order-1 order-lg-1">
+                <div class="card ai-analysis-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-robot text-dark"></i> 
+                            <span id="chart-title">AI Analysis</span>
+                            <button class="btn btn-dark btn-sm float-end" id="run-analysis-btn">
+                                <i class="bi bi-lightning-charge" id="analysis-icon"></i> Run Analysis
+                            </button>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <!-- Analysis Input Section -->
+                        <div class="mb-4 analysis-input-section">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="token-address" class="form-label form-label-sm">Token Address *</label>
+                                        <input type="text" class="form-control form-control-sm" id="token-address" 
+                                               value="{{ config.token_address }}" required 
+                                               placeholder="Enter Solana token address">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="chart-upload" class="form-label form-label-sm">
+                                            <i class="bi bi-upload"></i> Upload Chart Screenshot *
+                                        </label>
+                                        <input type="file" class="form-control form-control-sm" id="chart-upload" 
+                                               accept="image/*" onchange="handleChartUpload(this)" required>
+                                        <div id="chart-preview" class="mt-2" style="display: none;">
+                                            <img id="chart-preview-img" src="" alt="Chart Preview" class="img-thumbnail" style="max-height: 150px;">
+                                            <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeChartUpload()">
+                                                <i class="bi bi-trash"></i> Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="llm-analysis-container" class="analysis-content-container">
+                            <div id="analysis-content">
+                                <div class="text-center py-4">
+                                    <i class="bi bi-cpu text-dark" style="font-size: 2.5rem;"></i>
+                                    <h6 class="mt-3 mb-2 text-muted">Ready for AI Analysis</h6>
+                                    <p class="text-muted mb-0 small">Enter token address and upload chart, then click "Run Analysis"</p>
+                                </div>
+                            </div>
+                            <div id="analysis-loading" class="text-center py-5" style="display: none;">
+                                <div class="spinner-border text-dark mb-3" role="status" style="width: 3rem; height: 3rem;">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <h5 class="text-dark">Running AI Analysis...</h5>
+                                <p class="text-muted">Please be patient whilst our agents audit your token</p>
+                            </div>
+                            <div id="analysis-results" style="display: none; padding: 20px;">
+                                <!-- Analysis results will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bot Configuration & Terminal Section -->
+            <div class="col-12 col-lg-4 order-2 order-lg-2">
+                <!-- Bot Configuration Panel -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-gear-fill text-dark"></i> Bot Configuration</h6>
+                    </div>
+                    <div class="card-body">
+                        <form id="config-form">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="row g-2">
+                                        <div class="col-12 col-sm-6">
+                                            <div class="mb-2">
+                                                <label for="target-buy-price" class="form-label form-label-sm">Buy Price ($)</label>
+                                                <input type="number" class="form-control" id="target-buy-price" 
+                                                       value="{{ config.target_buy_price }}" step="0.000001" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-sm-6">
+                                            <div class="mb-2">
+                                                <label for="target-sell-price" class="form-label form-label-sm">Sell Price ($)</label>
+                                                <input type="number" class="form-control" id="target-sell-price" 
+                                                       value="{{ config.target_sell_price }}" step="0.000001" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row g-2">
+                                        <div class="col-12 col-sm-6">
+                                            <div class="mb-2">
+                                                <label for="amount-to-trade" class="form-label form-label-sm">Amount (SOL)</label>
+                                                <input type="number" class="form-control" id="amount-to-trade" 
+                                                       value="{{ config.amount_to_trade }}" step="0.001" min="0.001" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-sm-6">
+                                            <div class="mb-2">
+                                                <label for="stop-loss-percentage" class="form-label form-label-sm">Stop Loss (%)</label>
+                                                <input type="number" class="form-control" id="stop-loss-percentage" 
+                                                       value="{{ config.stop_loss_percentage }}" min="1" max="90" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row g-2">
+                                        <div class="col-12">
+                                            <div class="mb-2">
+                                                <label for="slippage-bps" class="form-label form-label-sm">Slippage (BPS)</label>
+                                                <input type="number" class="form-control" id="slippage-bps" 
+                                                       value="{{ config.slippage_bps }}" min="50" max="1000" required>
+                                                <div class="form-text">50-1000 BPS (0.5%-10%)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2 mt-3">
+                                        <div class="row g-2">
+                                            <div class="col-12 col-sm-4">
+                                                <button type="button" class="btn btn-info w-100 btn-sm" id="update-config-btn">
+                                                    <i class="bi bi-arrow-clockwise"></i> Update
+                                                </button>
+                                            </div>
+                                            <div class="col-12 col-sm-4">
+                                                <button type="button" class="btn btn-success w-100" id="start-bot-btn">
+                                                    <i class="bi bi-play-fill"></i> Start Bot
+                                                </button>
+                                            </div>
+                                            <div class="col-12 col-sm-4">
+                                                <button type="button" class="btn btn-danger w-100" id="stop-bot-btn" disabled>
+                                                    <i class="bi bi-stop-fill"></i> Stop Bot
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Close Position Button Row -->
+                                        <div class="row g-2 mt-2">
+                                            <div class="col-12">
+                                                <button type="button" class="btn btn-danger w-100" id="close-position-btn" disabled>
+                                                    <i class="bi bi-box-arrow-right"></i> Close Trade Position
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <!-- Bot Status Display -->
+                        <div class="mt-3 p-2 stat-card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small><strong>Status:</strong></small>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge" id="status-badge">Stopped</span>
+                                    <button class="btn btn-outline-secondary btn-sm" id="refresh-status-btn" title="Refresh Status">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <small><strong>Target:</strong></small>
+                                <small>Buy: $<span id="target-buy-display"></span></small>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small></small>
+                                <small>Sell: $<span id="target-sell-display"></span></small>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <small><strong>Wallet:</strong></small>
+                                <small><span id="wallet-balance">0.0</span> SOL</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Terminal Output Card -->
+                <div class="card" id="terminal-output-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-terminal text-success"></i> 
+                            <span>Live Terminal Output</span>
+                            <button class="btn btn-outline-secondary btn-sm float-end" id="clear-terminal-btn">
+                                <i class="bi bi-trash"></i> Clear
+                            </button>
+                        </h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="terminal-output" class="terminal-display terminal-right-column">
+                            <div class="terminal-content">
+                                <div class="text-muted text-center py-3">
+                                    <i class="bi bi-terminal" style="font-size: 2rem;"></i>
+                                    <p class="mb-0 mt-2">Latest terminal output will appear here</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Enhanced Trading UI JavaScript -->
+    <script>
+        class ProfessionalJupiterBotUI {
+            constructor() {
+                this.currentTokenAddress = '{{ config.token_address }}' || '';
+                this.priceInterval = null;
+                this.statsInterval = null;
+                this.statusInterval = null;
+                this.terminalInterval = null;
+                this.tokenInputTimeout = null;
+                this.configSaveTimeout = null;
+                this.chartTokenTimeout = null;
+                this.chartWidget = null;
+                this.isChartInitialized = false;
+                this.isMoralisScriptReady = false;
+                
+                this.init();
+            }
+            
+            init() {
+                this.setupEventListeners();
+                this.loadBotStatus();
+                this.updateDisplays();
+                this.updateTerminalOutput(); // Load initial terminal output
+                this.initializeMoralisChart(); // Initialize chart widget
+                
+                console.log(`🚀 Initializing with token address: "${this.currentTokenAddress}"`);
+                
+                // Only start data intervals if we have a token address
+                if (this.currentTokenAddress && this.currentTokenAddress.trim() !== '') {
+                    console.log(`📊 Starting data intervals for token: ${this.currentTokenAddress}`);
+                    this.startDataIntervals();
+                } else {
+                    console.log('⚠️ No token address found - clearing stats');
+                    // Clear stats if no token address on init
+                    this.clearTokenStats();
+                    this.showChartEmpty();
+                }
+                
+                console.log('✅ Jupiter Bot UI initialized');
+            }
+            
+            setupEventListeners() {
+                // Bot control buttons
+                document.getElementById('start-bot-btn').addEventListener('click', () => this.startBot());
+                document.getElementById('stop-bot-btn').addEventListener('click', () => this.stopBot());
+                document.getElementById('run-analysis-btn').addEventListener('click', () => this.runAIAnalysis());
+                document.getElementById('update-config-btn').addEventListener('click', () => this.updateBotConfig());
+                document.getElementById('close-position-btn').addEventListener('click', () => this.showClosePositionModal());
+                document.getElementById('confirm-close-position-btn').addEventListener('click', () => this.executeClosePosition());
+                
+                // Chart controls
+                document.getElementById('load-chart-btn').addEventListener('click', () => this.loadChartForToken());
+                
+                // Token address synchronization between chart and AI analysis
+                document.getElementById('token-address').addEventListener('change', (e) => {
+                    this.syncTokenAddresses(e.target.value, 'analysis');
+                    this.handleTokenAddressChange(e.target.value);
+                });
+                
+                document.getElementById('chart-token-address').addEventListener('change', (e) => {
+                    this.syncTokenAddresses(e.target.value, 'chart');
+                    this.handleTokenAddressChange(e.target.value);
+                });
+                
+                // Also listen for input events for more responsive updates
+                document.getElementById('token-address').addEventListener('input', (e) => {
+                    // Use debouncing for input events to avoid too many API calls
+                    clearTimeout(this.tokenInputTimeout);
+                    this.tokenInputTimeout = setTimeout(() => {
+                        this.syncTokenAddresses(e.target.value, 'analysis');
+                        this.handleTokenAddressChange(e.target.value);
+                    }, 1000); // 1 second delay
+                });
+                
+                document.getElementById('chart-token-address').addEventListener('input', (e) => {
+                    // Use debouncing for chart token input
+                    clearTimeout(this.chartTokenTimeout);
+                    this.chartTokenTimeout = setTimeout(() => {
+                        this.syncTokenAddresses(e.target.value, 'chart');
+                        this.handleTokenAddressChange(e.target.value);
+                    }, 1000); // 1 second delay
+                });
+                
+                // Auto-save configuration on input changes (debounced)
+                const configFields = ['token-address', 'target-buy-price', 'target-sell-price', 'amount-to-trade', 'stop-loss-percentage', 'slippage-bps'];
+                configFields.forEach(fieldId => {
+                    const element = document.getElementById(fieldId);
+                    if (element) {
+                        element.addEventListener('input', (e) => {
+                            clearTimeout(this.configSaveTimeout);
+                            this.configSaveTimeout = setTimeout(() => {
+                                this.autoSaveConfig();
+                            }, 500); // 500ms delay for auto-save
+                        });
+                    }
+                });
+                
+                // Price input changes - update display dynamically
+                document.getElementById('target-buy-price').addEventListener('input', (e) => {
+                    this.updateDisplays();
+                });
+                document.getElementById('target-sell-price').addEventListener('input', (e) => {
+                    this.updateDisplays();
+                });
+                
+                // Terminal clear button
+                document.getElementById('clear-terminal-btn').addEventListener('click', () => this.clearTerminal());
+                
+                // Status refresh button
+                document.getElementById('refresh-status-btn').addEventListener('click', () => this.loadBotStatus());
+            }
+            
+            startDataIntervals() {
+                // Clear existing intervals
+                this.clearDataIntervals();
+                
+                // Start new intervals
+                this.updateTokenStats(); // Initial call
+                this.updateWalletBalance(); // Initial wallet balance call
+                
+                this.statsInterval = setInterval(() => this.updateTokenStats(), 15000); // Every 15 seconds
+                this.statusInterval = setInterval(() => this.loadBotStatus(), 10000); // Every 10 seconds
+                this.terminalInterval = setInterval(() => this.updateTerminalOutput(), 2000); // Every 2 seconds
+                this.walletInterval = setInterval(() => this.updateWalletBalance(), 2000); // Every 2 seconds for real-time trading feedback
+                
+                console.log('📊 Data intervals started (including wallet balance)');
+            }
+            
+            clearDataIntervals() {
+                if (this.statsInterval) clearInterval(this.statsInterval);
+                if (this.statusInterval) clearInterval(this.statusInterval);
+                if (this.terminalInterval) clearInterval(this.terminalInterval);
+                if (this.walletInterval) clearInterval(this.walletInterval);
+            }
+            
+            clearTokenStats() {
+                // Reset all stat displays to default values
+                document.getElementById('price-display').textContent = '--';
+                document.getElementById('price-sol-display').textContent = '--';
+                
+                // Reset token symbol to default
+                const tokenSymbolElement = document.querySelector('.token-symbol');
+                if (tokenSymbolElement) {
+                    tokenSymbolElement.textContent = 'TOKEN';
+                }
+                
+                // Clear all price change displays
+                document.getElementById('price-change-5m-display').textContent = '--';
+                document.getElementById('price-change-1h-display').textContent = '--';
+                document.getElementById('price-change-6h-display').textContent = '--';
+                document.getElementById('price-change-display').textContent = '--';
+                
+                // Reset color classes
+                ['price-change-5m-display', 'price-change-1h-display', 'price-change-6h-display', 'price-change-display'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.className = '';
+                    }
+                });
+                
+                // Clear market data
+                document.getElementById('liquidity-display').textContent = '--';
+                document.getElementById('volume-display').textContent = '--';
+                document.getElementById('mcap-display').textContent = '--';
+                
+                // Clear liquidity lock status
+                const iconElement = document.getElementById('liquidity-lock-icon');
+                const textElement = document.getElementById('liquidity-lock-text');
+                if (iconElement) iconElement.className = '';
+                if (textElement) {
+                    textElement.textContent = '--';
+                    textElement.className = '';
+                }
+                
+                // Clear rugcheck data
+                document.getElementById('rugcheck-score-display').textContent = '--';
+                document.getElementById('rugcheck-level-display').textContent = '--';
+                document.getElementById('rugcheck-holders-display').textContent = '-- holders';
+                document.getElementById('rugcheck-markets-display').textContent = '-- markets';
+                document.getElementById('lp-locked-display').textContent = '--';
+                document.getElementById('rugcheck-status-display').textContent = '--';
+            }
+            
+            restartDataIntervals() {
+                console.log(`🔄 Restarting data intervals for token: ${this.currentTokenAddress}`);
+                this.startDataIntervals();
+            }
+            
+            handleTokenAddressChange(newAddress) {
+                this.currentTokenAddress = newAddress;
+                if (this.currentTokenAddress && this.currentTokenAddress.trim() !== '') {
+                    // Validate token address format (basic Solana address validation)
+                    if (this.currentTokenAddress.length >= 32 && this.currentTokenAddress.length <= 44) {
+                        console.log(`🪙 Token address changed to: ${this.currentTokenAddress}`);
+                        // Clear previous data first
+                        this.clearTokenStats();
+                        // Update chart with new token
+                        this.updateMoralisChart(this.currentTokenAddress);
+                        // Immediately update stats for new token
+                        this.updateTokenStats();
+                        this.restartDataIntervals();
+                    } else {
+                        console.log('⚠️ Invalid token address format');
+                        this.setStatsErrorState('Invalid token address format - must be 32-44 characters');
+                        this.showChartError();
+                        this.clearDataIntervals();
+                    }
+                } else {
+                    // Clear stats if no token address
+                    console.log('🧹 Clearing stats - no token address');
+                    this.clearTokenStats();
+                    this.showChartEmpty();
+                    this.clearDataIntervals();
+                }
+            }
+            
+            async updateTokenStats() {
+                try {
+                    console.log(`📈 Fetching token stats for: ${this.currentTokenAddress}`);
+                    
+                    if (!this.currentTokenAddress || this.currentTokenAddress.trim() === '') {
+                        console.warn('⚠️ No token address provided for stats update');
+                        this.setStatsErrorState('No token address provided');
+                        return;
+                    }
+                    
+                    // Show loading states
+                    this.setStatsLoadingState(true);
+                    
+                    const response = await fetch(`/api/token-stats/${this.currentTokenAddress}`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const data = result.data;
+                        
+                        // Check if we got valid data or error response
+                        if (data.error) {
+                            console.warn(`Token data error: ${data.error}`);
+                            this.setStatsErrorState(`Token data error: ${data.error}`);
+                            return;
+                        }
+                        
+                        // Update header stats
+                        document.getElementById('price-display').textContent = data.price_usd ? data.price_usd.toFixed(6) : '--';
+                        document.getElementById('price-sol-display').textContent = data.price_usd ? (data.price_usd / 160).toFixed(8) : '--';
+                        
+                        // Update token symbol and name in chart header
+                        const tokenSymbolElement = document.querySelector('.token-symbol');
+                        if (tokenSymbolElement && data.token_symbol) {
+                            let displayText = data.token_symbol;
+                            // Add token name if available and different from symbol
+                            if (data.token_name && data.token_name.toLowerCase() !== data.token_symbol.toLowerCase()) {
+                                displayText += ` (${data.token_name})`;
+                            }
+                            tokenSymbolElement.textContent = displayText;
+                        }
+                        
+                        // Update all price change displays
+                        this.updatePriceChangeDisplay('price-change-5m-display', data.price_change_5m || 0);
+                        this.updatePriceChangeDisplay('price-change-1h-display', data.price_change_1h || 0);
+                        this.updatePriceChangeDisplay('price-change-6h-display', data.price_change_6h || 0);
+                        this.updatePriceChangeDisplay('price-change-display', data.price_change_24h || 0);
+                        
+                        document.getElementById('liquidity-display').textContent = data.liquidity ? this.formatNumber(data.liquidity) : '$0';
+                        if (data.liquidity_locked !== undefined && data.lp_locked_pct !== undefined) {
+                            this.updateLiquidityLockStatus(data.liquidity_locked, data.lp_locked_pct);
+                        } else {
+                            this.clearLiquidityLockStatus();
+                        }
+                        document.getElementById('volume-display').textContent = data.volume_24h ? this.formatNumber(data.volume_24h) : '$0';
+                        document.getElementById('mcap-display').textContent = data.market_cap ? this.formatNumber(data.market_cap) : '$0';
+                        
+                        // Update rugcheck security display
+                        this.updateRugcheckDisplay(data);
+                        
+                        // Clear loading states
+                        this.setStatsLoadingState(false);
+                        
+                        console.log(`✅ Successfully updated stats for ${this.currentTokenAddress}`);
+                        
+                    } else {
+                        // Handle API error response
+                        console.error(`API Error: ${result.error} (Code: ${result.error_code || 'N/A'})`);
+                        const errorMessage = this.getUserFriendlyError(result.error, result.error_code);
+                        this.setStatsErrorState(errorMessage);
+                    }
+                } catch (error) {
+                    console.error('Network/Parsing error updating token stats:', error);
+                    this.setStatsErrorState('Network error - please check your connection');
+                }
+            }
+            
+            updateRugcheckDisplay(data) {
+                try {
+                    const rugcheckData = data.rugcheck || {};
+                    const score = rugcheckData.score !== undefined ? rugcheckData.score : 999;
+                    const riskLevel = data.rugcheck_risk_level || 'UNKNOWN';
+                    const lpLocked = rugcheckData.lp_locked_pct || 0;
+                    const marketLpBreakdown = data.market_lp_breakdown || {};
+                    const isRugged = rugcheckData.rugged || false;
+                    const totalHolders = rugcheckData.total_holders || 0;
+                    const totalMarkets = rugcheckData.total_markets || 0;
+                    const insidersDetected = rugcheckData.insiders_detected || 0;
+                    
+                    // Get all display elements (both mobile and desktop)
+                    const scoreElement = document.getElementById('rugcheck-score-display');
+                    const levelElement = document.getElementById('rugcheck-level-display');
+                    const holdersElement = document.getElementById('rugcheck-holders-display');
+                    const marketsElement = document.getElementById('rugcheck-markets-display');
+                    const lpElement = document.getElementById('lp-locked-display');
+                    const statusElement = document.getElementById('rugcheck-status-display');
+                    
+                    // Note: With individual cards, we no longer need separate mobile/desktop elements
+                    
+                    // Handle rugged tokens first (overrides everything)
+                    if (isRugged) {
+                        scoreElement.textContent = 'RUGGED';
+                        scoreElement.className = 'risk-rugged';
+                        levelElement.textContent = 'EXTREME RISK';
+                        levelElement.className = 'risk-rugged';
+                        statusElement.innerHTML = '<span class="security-badge badge-danger">RUGGED</span>';
+                    } else if (score === 999) {
+                        // No rugcheck data available
+                        scoreElement.textContent = 'N/A';
+                        scoreElement.className = 'text-muted';
+                        levelElement.textContent = 'No data';
+                        levelElement.className = 'text-muted';
+                        statusElement.textContent = 'Unknown';
+                    } else {
+                        // Display score and apply risk-based styling
+                        scoreElement.textContent = score;
+                        
+                        // Risk level styling and text
+                        if (score <= 1) {
+                            scoreElement.className = 'risk-excellent';
+                            levelElement.textContent = 'EXCELLENT';
+                            levelElement.className = 'risk-excellent';
+                            statusElement.innerHTML = '<span class="security-badge badge-safe">SAFE</span>';
+                        } else if (score <= 5) {
+                            scoreElement.className = 'risk-good';
+                            levelElement.textContent = 'GOOD';
+                            levelElement.className = 'risk-good';
+                            statusElement.innerHTML = '<span class="security-badge badge-safe">LOW RISK</span>';
+                        } else if (score <= 10) {
+                            scoreElement.className = 'risk-moderate';
+                            levelElement.textContent = 'MODERATE';
+                            levelElement.className = 'risk-moderate';
+                            statusElement.innerHTML = '<span class="security-badge badge-warning">CAUTION</span>';
+                        } else {
+                            scoreElement.className = 'risk-very-high';
+                            levelElement.textContent = 'HIGH RISK';
+                            levelElement.className = 'risk-very-high';
+                            statusElement.innerHTML = '<span class="security-badge badge-danger">HIGH RISK</span>';
+                        }
+                        
+                        // Add insider warning if detected
+                        if (insidersDetected > 0) {
+                            statusElement.innerHTML += '<span class="security-badge badge-warning">INSIDERS</span>';
+                        }
+                    }
+                    
+                    // Update holder count with formatting (both mobile and desktop)
+                    let holdersText;
+                    if (totalHolders > 0) {
+                        if (totalHolders >= 1000000) {
+                            holdersText = (totalHolders / 1000000).toFixed(1) + 'M holders';
+                        } else if (totalHolders >= 1000) {
+                            holdersText = (totalHolders / 1000).toFixed(1) + 'K holders';
+                        } else {
+                            holdersText = totalHolders + ' holders';
+                        }
+                    } else {
+                        holdersText = '-- holders';
+                    }
+                    
+                    if (holdersElement) holdersElement.textContent = holdersText;
+                    
+                    // Update markets count
+                    const marketsText = totalMarkets > 0 ? totalMarkets + ' markets' : '-- markets';
+                    if (marketsElement) marketsElement.textContent = marketsText;
+                    
+                    // Update LP locked percentage - show market breakdown if available
+                    this.updateLpDisplay(lpElement, marketLpBreakdown, lpLocked, rugcheckData);
+                    
+                } catch (error) {
+                    console.error('Error updating rugcheck display:', error);
+                    // Set fallback values on error
+                    document.getElementById('rugcheck-score-display').textContent = 'Error';
+                    document.getElementById('rugcheck-level-display').textContent = 'Failed to load';
+                    document.getElementById('rugcheck-holders-display').textContent = '-- holders';
+                    document.getElementById('rugcheck-markets-display').textContent = '-- markets';
+                    document.getElementById('lp-locked-display').textContent = '--';
+                    document.getElementById('rugcheck-status-display').textContent = 'Error';
+                }
+            }
+            
+            updateLpDisplay(lpElement, marketLpBreakdown, fallbackLp, rugcheckData = null) {
+                try {
+                    // Extract market breakdown from rugcheck data if not provided
+                    if ((!marketLpBreakdown || Object.keys(marketLpBreakdown).length === 0) && rugcheckData && rugcheckData.full_data && rugcheckData.full_data.markets) {
+                        marketLpBreakdown = this.extractMarketBreakdown(rugcheckData.full_data.markets);
+                    }
+                    
+                    // Check if we have market breakdown data
+                    if (marketLpBreakdown && Object.keys(marketLpBreakdown).length > 0) {
+                        // Create HTML for market breakdown display
+                        let html = '';
+                        const markets = Object.entries(marketLpBreakdown);
+                        
+                        if (markets.length === 1) {
+                            // Single market - just show percentage
+                            const [marketType, data] = markets[0];
+                            html = `${data.percentage}%`;
+                        } else {
+                            // Multiple markets - show breakdown
+                            html = markets.map(([marketType, data]) => {
+                                return `${data.name}: ${data.percentage}%`;
+                            }).join(' | ');
+                        }
+                        
+                        lpElement.innerHTML = html;
+                        lpElement.title = 'LP Locked by Market:\n' + markets.map(([marketType, data]) => 
+                            `${data.name}: ${data.percentage}%`
+                        ).join('\n');
+                    } else {
+                        // Fallback to single percentage
+                        lpElement.textContent = fallbackLp.toFixed(1);
+                        lpElement.title = 'LP Locked Percentage';
+                    }
+                } catch (error) {
+                    console.error('Error updating LP display:', error);
+                    lpElement.textContent = fallbackLp.toFixed(1);
+                }
+            }
+            
+            extractMarketBreakdown(markets) {
+                if (!markets || !Array.isArray(markets)) return {};
+                
+                const marketBreakdown = {};
+                const seenMarketTypes = new Set();
+                
+                const readableNames = {
+                    'pump_fun_amm': 'Pump Fun',
+                    'meteora': 'Meteora',
+                    'meteoraDlmm': 'Meteora DLMM', 
+                    'meteoraDamm': 'Meteora DAMM',
+                    'raydium_clmm': 'CLMM',
+                    'raydium_cpmm': 'CPMM',
+                    'raydium_amm': 'Raydium'
+                };
+                
+                for (const market of markets) {
+                    const lpData = market.lp || {};
+                    const lpLockedPct = lpData.lpLockedPct || 0;
+                    
+                    if (lpLockedPct > 0) {
+                        const marketType = market.marketType || 'unknown';
+                        
+                        if (!seenMarketTypes.has(marketType)) {
+                            seenMarketTypes.add(marketType);
+                            const readableName = readableNames[marketType] || marketType;
+                            marketBreakdown[marketType] = {
+                                name: readableName,
+                                percentage: Math.round(lpLockedPct * 100) / 100 // Round to 2 decimals
+                            };
+                        }
+                    }
+                }
+                
+                return marketBreakdown;
+            }
+            
+            
+            
+            
+            
+            async startBot() {
+                try {
+                    console.log('🚀 Starting bot with current UI configuration');
+                    
+                    // Collect and validate all form values
+                    const botConfig = this.collectFormData();
+                    const validation = this.validateConfig(botConfig);
+                    
+                    if (!validation.valid) {
+                        this.showAlert('danger', validation.error);
+                        return;
+                    }
+                    
+                    const response = await fetch('/api/bot/start', { 
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(botConfig)
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.showAlert('success', result.message);
+                        this.loadBotStatus();
+                        // Terminal will show automatically when output appears
+                    } else {
+                        this.showAlert('danger', `Failed to start: ${result.error}`);
+                    }
+                } catch (error) {
+                    this.showAlert('danger', `Error starting bot: ${error.message}`);
+                }
+            }
+            
+            async autoSaveConfig() {
+                try {
+                    console.log('💾 Auto-saving configuration...');
+                    
+                    // Collect all form values
+                    const config = this.collectFormData();
+                    
+                    // Only save if we have at least a token address
+                    if (!config.token_address.trim()) {
+                        console.log('⚠️ Skipping auto-save - no token address');
+                        return;
+                    }
+                    
+                    const response = await fetch('/api/bot/save-config', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(config)
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                        console.log('✅ Configuration auto-saved');
+                    } else {
+                        console.warn('⚠️ Auto-save failed:', result.error);
+                    }
+                } catch (error) {
+                    console.error('❌ Auto-save error:', error);
+                }
+            }
+            
+            async updateBotConfig() {
+                try {
+                    console.log('🔄 Update bot configuration requested');
+                    
+                    // Collect and validate all form values
+                    const config = this.collectFormData();
+                    const validation = this.validateConfig(config);
+                    
+                    if (!validation.valid) {
+                        this.showAlert('danger', validation.error);
+                        return;
+                    }
+                    
+                    // Check if bot is running
+                    const statusResponse = await fetch('/api/bot/status');
+                    const status = await statusResponse.json();
+                    
+                    if (status.running) {
+                        // Stop bot, update config, restart bot
+                        this.showAlert('info', 'Updating bot configuration - restarting with new values...');
+                        
+                        // Stop the bot
+                        const stopResponse = await fetch('/api/bot/stop', { method: 'POST' });
+                        const stopResult = await stopResponse.json();
+                        
+                        if (!stopResult.success) {
+                            this.showAlert('danger', 'Failed to stop bot for update');
+                            return;
+                        }
+                        
+                        // Update configuration
+                        await this.saveConfig(config);
+                        
+                        // Start bot with new config
+                        const startResponse = await fetch('/api/bot/start', { 
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(config)
+                        });
+                        const startResult = await startResponse.json();
+                        
+                        if (startResult.success) {
+                            this.showAlert('success', 'Bot updated and restarted with new configuration!');
+                        } else {
+                            this.showAlert('danger', `Failed to restart bot: ${startResult.error}`);
+                        }
+                    } else {
+                        // Just save the configuration
+                        await this.saveConfig(config);
+                        this.showAlert('success', 'Configuration updated successfully!');
+                    }
+                    
+                    this.loadBotStatus();
+                } catch (error) {
+                    console.error('Update config error:', error);
+                    this.showAlert('danger', `Error updating configuration: ${error.message}`);
+                }
+            }
+            
+            collectFormData() {
+                return {
+                    token_address: document.getElementById('token-address').value.trim(),
+                    target_buy_price: parseFloat(document.getElementById('target-buy-price').value) || 0,
+                    target_sell_price: parseFloat(document.getElementById('target-sell-price').value) || 0,
+                    amount_to_trade: parseFloat(document.getElementById('amount-to-trade').value) || 0,
+                    stop_loss_percentage: parseFloat(document.getElementById('stop-loss-percentage').value) || 0,
+                    slippage_bps: parseFloat(document.getElementById('slippage-bps').value) || 200
+                };
+            }
+            
+            validateConfig(config) {
+                if (!config.token_address) {
+                    return { valid: false, error: 'Token address is required' };
+                }
+                
+                if (config.token_address.length < 32 || config.token_address.length > 44) {
+                    return { valid: false, error: 'Invalid token address format' };
+                }
+                
+                if (config.target_buy_price <= 0) {
+                    return { valid: false, error: 'Buy price must be greater than 0' };
+                }
+                
+                if (config.target_sell_price <= 0) {
+                    return { valid: false, error: 'Sell price must be greater than 0' };
+                }
+                
+                if (config.target_buy_price > config.target_sell_price) {
+                    return { valid: false, error: 'Sell price must be higher than or equal to buy price' };
+                }
+                
+                if (config.amount_to_trade <= 0) {
+                    return { valid: false, error: 'Amount to trade must be greater than 0' };
+                }
+                
+                if (config.stop_loss_percentage <= 0 || config.stop_loss_percentage >= 100) {
+                    return { valid: false, error: 'Stop loss must be between 1-99%' };
+                }
+                
+                if (config.slippage_bps < 50 || config.slippage_bps > 1000) {
+                    return { valid: false, error: 'Slippage must be between 50-1000 BPS (0.5%-10%)' };
+                }
+                
+                return { valid: true };
+            }
+            
+            async saveConfig(config) {
+                const response = await fetch('/api/bot/save-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to save configuration');
+                }
+                return result;
+            }
+            
+            async stopBot() {
+                try {
+                    const response = await fetch('/api/bot/stop', { method: 'POST' });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.showAlert('warning', result.message);
+                        this.loadBotStatus();
+                        // Keep terminal visible to show stop message and debug info
+                    } else {
+                        this.showAlert('danger', `Failed to stop: ${result.error}`);
+                    }
+                } catch (error) {
+                    this.showAlert('danger', `Error stopping bot: ${error.message}`);
+                }
+            }
+            
+            async showClosePositionModal() {
+                try {
+                    // Check if we have a token address configured
+                    const tokenAddress = document.getElementById('token-address').value.trim();
+                    if (!tokenAddress) {
+                        this.showAlert('warning', 'No token address configured');
+                        return;
+                    }
+                    
+                    // TODO: Get actual token balance from wallet
+                    // For now, show placeholder data
+                    document.getElementById('close-position-token-balance').textContent = '-- TOKEN';
+                    document.getElementById('close-position-estimated-sol').textContent = '~-- SOL';
+                    document.getElementById('close-position-dex').textContent = 'Detecting...';
+                    
+                    // Show the modal
+                    const modal = new bootstrap.Modal(document.getElementById('closePositionModal'));
+                    modal.show();
+                    
+                    // TODO: Fetch actual wallet balance and estimate
+                    console.log('🔍 Checking wallet balance for liquidation...');
+                    
+                } catch (error) {
+                    console.error('Error showing close position modal:', error);
+                    this.showAlert('danger', `Error: ${error.message}`);
+                }
+            }
+            
+            async executeClosePosition() {
+                try {
+                    console.log('🔻 Executing position close...');
+                    
+                    // Disable the confirm button to prevent double-clicks
+                    const confirmBtn = document.getElementById('confirm-close-position-btn');
+                    const originalText = confirmBtn.innerHTML;
+                    confirmBtn.disabled = true;
+                    confirmBtn.innerHTML = '<i class="spinner-border spinner-border-sm me-2"></i>Closing...';
+                    
+                    // Call the close position API
+                    const response = await fetch('/api/bot/close-position', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Close the modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('closePositionModal'));
+                        modal.hide();
+                        
+                        // Show success message
+                        this.showAlert('success', `Position closed successfully via ${result.dex_used?.toUpperCase()}`);
+                        
+                        // Update UI state
+                        this.loadBotStatus();
+                        
+                    } else {
+                        this.showAlert('danger', `Failed to close position: ${result.error}`);
+                    }
+                    
+                } catch (error) {
+                    console.error('Error executing close position:', error);
+                    this.showAlert('danger', `Error closing position: ${error.message}`);
+                } finally {
+                    // Re-enable the button
+                    const confirmBtn = document.getElementById('confirm-close-position-btn');
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '<i class="bi bi-box-arrow-right"></i> Close Position';
+                }
+            }
+            
+            async updateTerminalOutput() {
+                try {
+                    const response = await fetch('/api/terminal/output');
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.displayTerminalOutput(result.output);
+                    }
+                } catch (error) {
+                    console.error('Error fetching terminal output:', error);
+                }
+            }
+            
+            displayTerminalOutput(output) {
+                const terminalContent = document.querySelector('.terminal-content');
+                const terminalDisplay = document.getElementById('terminal-output');
+                
+                // Clear existing content
+                terminalContent.innerHTML = '';
+                
+                if (output.length === 0) {
+                    terminalContent.innerHTML = `
+                        <div class="text-muted text-center py-3">
+                            <i class="bi bi-terminal" style="font-size: 1.5rem;"></i>
+                            <p class="mb-0 mt-2">Latest terminal output will appear here</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Add each terminal line with enhanced error highlighting
+                output.forEach(line => {
+                    const lineDiv = document.createElement('div');
+                    lineDiv.className = 'terminal-line';
+                    
+                    // Enhanced error highlighting for balance issues
+                    let levelClass = `terminal-level-${line.level}`;
+                    if (line.line.toLowerCase().includes('low balance') || 
+                        line.line.toLowerCase().includes('balance: 0')) {
+                        levelClass += ' terminal-critical-error';
+                    }
+                    
+                    lineDiv.innerHTML = `
+                        <span class="terminal-timestamp">${line.timestamp}</span>
+                        <span class="${levelClass}">${line.line}</span>
+                    `;
+                    terminalContent.appendChild(lineDiv);
+                });
+                
+                // Auto-scroll to bottom
+                terminalDisplay.scrollTop = terminalDisplay.scrollHeight;
+            }
+            
+            async clearTerminal() {
+                try {
+                    const response = await fetch('/api/terminal/clear', { method: 'POST' });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.displayTerminalOutput([]);
+                    }
+                } catch (error) {
+                    console.error('Error clearing terminal:', error);
+                }
+            }
+            
+            
+            async loadBotStatus() {
+                try {
+                    const response = await fetch('/api/bot/status');
+                    const status = await response.json();
+                    
+                    const indicator = document.getElementById('status-indicator');
+                    const statusText = document.getElementById('bot-status-text');
+                    const statusBadge = document.getElementById('status-badge');
+                    const startBtn = document.getElementById('start-bot-btn');
+                    const stopBtn = document.getElementById('stop-bot-btn');
+                    const closeBtn = document.getElementById('close-position-btn');
+                    
+                    if (status.running) {
+                        indicator.className = 'status-indicator status-running';
+                        statusText.textContent = `Running (PID: ${status.pid})`;
+                        statusBadge.textContent = 'Running';
+                        statusBadge.className = 'badge bg-success';
+                        startBtn.disabled = true;
+                        stopBtn.disabled = false;
+                        closeBtn.disabled = false; // Enable close position when bot is running
+                        // Don't auto-show terminal here - let displayTerminalOutput handle it
+                    } else {
+                        indicator.className = 'status-indicator status-stopped';
+                        statusText.textContent = 'Stopped';
+                        statusBadge.textContent = 'Stopped';
+                        statusBadge.className = 'badge bg-secondary';
+                        startBtn.disabled = false;
+                        stopBtn.disabled = true;
+                        closeBtn.disabled = true; // Disable close position when bot is stopped
+                        // Don't auto-hide terminal - keep it visible if there's output to show
+                    }
+                } catch (error) {
+                    console.error('Error loading bot status:', error);
+                }
+            }
+            
+            async updateWalletBalance() {
+                try {
+                    console.log('📡 Fetching wallet balance from /api/wallet/balance');
+                    const response = await fetch('/api/wallet/balance');
+                    const result = await response.json();
+                    console.log('📊 Wallet balance API response:', result);
+                    
+                    const walletBalanceElement = document.getElementById('wallet-balance');
+                    
+                    if (result.success) {
+                        const balance = parseFloat(result.balance);
+                        walletBalanceElement.textContent = balance.toFixed(6);
+                        walletBalanceElement.title = `${result.message}\nWallet: ${result.wallet_address}`;
+                        console.log(`💰 Wallet balance updated: ${balance.toFixed(6)} SOL`);
+                    } else {
+                        walletBalanceElement.textContent = '0.0';
+                        walletBalanceElement.title = result.error || 'Wallet not configured';
+                        console.warn('⚠️ Wallet balance error:', result.error);
+                    }
+                } catch (error) {
+                    console.error('❌ Error fetching wallet balance:', error);
+                    const walletBalanceElement = document.getElementById('wallet-balance');
+                    walletBalanceElement.textContent = '0.0';
+                    walletBalanceElement.title = 'Connection error';
+                }
+            }
+            
+            updatePriceChangeDisplay(elementId, changeValue) {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.textContent = (changeValue >= 0 ? '+' : '') + changeValue.toFixed(2) + '%';
+                    element.className = changeValue >= 0 ? 'price-positive' : 'price-negative';
+                }
+            }
+            
+            updateLiquidityLockStatus(isLocked, lpLockedPct) {
+                const iconElement = document.getElementById('liquidity-lock-icon');
+                const textElement = document.getElementById('liquidity-lock-text');
+                
+                if (iconElement && textElement) {
+                    if (isLocked) {
+                        iconElement.className = 'bi bi-lock-fill text-success me-1';
+                        textElement.textContent = 'Liquidity Locked';
+                        textElement.className = 'fw-bold text-success';
+                    } else {
+                        iconElement.className = 'bi bi-unlock-fill text-danger me-1';
+                        textElement.textContent = 'Liquidity Not Locked';
+                        textElement.className = 'fw-bold text-danger';
+                    }
+                    
+                    // Add tooltip with percentage if available
+                    if (lpLockedPct !== undefined) {
+                        textElement.title = `LP Locked: ${lpLockedPct.toFixed(1)}%`;
+                    }
+                }
+            }
+            
+            clearLiquidityLockStatus() {
+                const iconElement = document.getElementById('liquidity-lock-icon');
+                const textElement = document.getElementById('liquidity-lock-text');
+                if (iconElement) iconElement.className = '';
+                if (textElement) {
+                    textElement.textContent = '--';
+                    textElement.className = '';
+                    textElement.title = '';
+                }
+            }
+            
+            setStatsLoadingState(isLoading) {
+                if (isLoading) {
+                    // Show loading indicators
+                    document.getElementById('price-display').textContent = '...';
+                    document.getElementById('price-sol-display').textContent = '...';
+                    
+                    // Set all price changes to loading
+                    ['price-change-5m-display', 'price-change-1h-display', 'price-change-6h-display', 'price-change-display'].forEach(id => {
+                        const element = document.getElementById(id);
+                        if (element) {
+                            element.textContent = '...';
+                            element.className = 'text-muted';
+                        }
+                    });
+                    
+                    document.getElementById('liquidity-display').textContent = '...';
+                    document.getElementById('volume-display').textContent = '...';
+                    document.getElementById('mcap-display').textContent = '...';
+                    
+                    this.clearLiquidityLockStatus();
+                    
+                    // Set rugcheck to loading
+                    document.getElementById('rugcheck-score-display').textContent = '...';
+                    document.getElementById('rugcheck-level-display').textContent = 'Loading';
+                    document.getElementById('rugcheck-holders-display').textContent = '... holders';
+                    document.getElementById('rugcheck-markets-display').textContent = '... markets';
+                    document.getElementById('lp-locked-display').textContent = '...';
+                    document.getElementById('rugcheck-status-display').textContent = '...';
+                }
+            }
+            
+            setStatsErrorState(errorMessage) {
+                // Show error indicators
+                document.getElementById('price-display').textContent = 'Error';
+                document.getElementById('price-sol-display').textContent = 'Error';
+                
+                // Reset token symbol to default on error
+                const tokenSymbolElement = document.querySelector('.token-symbol');
+                if (tokenSymbolElement) {
+                    tokenSymbolElement.textContent = 'TOKEN';
+                }
+                
+                // Set all price changes to error
+                ['price-change-5m-display', 'price-change-1h-display', 'price-change-6h-display', 'price-change-display'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.textContent = 'Error';
+                        element.className = 'text-danger';
+                    }
+                });
+                
+                document.getElementById('liquidity-display').textContent = 'Error';
+                document.getElementById('volume-display').textContent = 'Error';
+                document.getElementById('mcap-display').textContent = 'Error';
+                
+                const iconElement = document.getElementById('liquidity-lock-icon');
+                const textElement = document.getElementById('liquidity-lock-text');
+                if (iconElement) iconElement.className = 'bi bi-exclamation-triangle text-danger me-1';
+                if (textElement) {
+                    textElement.textContent = 'Error';
+                    textElement.className = 'fw-bold text-danger';
+                }
+                
+                // Set rugcheck to error
+                document.getElementById('rugcheck-score-display').textContent = 'Error';
+                document.getElementById('rugcheck-level-display').textContent = 'Error';
+                document.getElementById('rugcheck-holders-display').textContent = 'Error';
+                document.getElementById('rugcheck-markets-display').textContent = 'Error';
+                document.getElementById('lp-locked-display').textContent = 'Error';
+                document.getElementById('rugcheck-status-display').innerHTML = '<span class="text-danger">Error</span>';
+                
+                // Show alert to user
+                this.showAlert('danger', errorMessage);
+                
+                console.error(`Stats error state set: ${errorMessage}`);
+            }
+            
+            getUserFriendlyError(apiError, errorCode = null) {
+                // Use error code for more specific messages
+                switch(errorCode) {
+                    case 'INVALID_ADDRESS':
+                        return 'Invalid token address format - please check and try again';
+                    case 'TOKEN_NOT_FOUND':
+                        return 'Token not found on DEX platforms - verify the address';
+                    case 'API_TIMEOUT':
+                        return 'Request timed out - please try again in a moment';
+                    case 'CONNECTION_ERROR':
+                        return 'Connection error - check your internet connection';
+                    case 'RUGCHECK_ERROR':
+                        return 'Security data temporarily unavailable';
+                    case 'TOKEN_DATA_ERROR':
+                        return 'Unable to fetch token data - token may not exist';
+                    default:
+                        // Fallback to text-based detection
+                        const error = apiError.toLowerCase();
+                        if (error.includes('no pairs found') || error.includes('no valid pair')) {
+                            return 'Token not found on DEX - check token address';
+                        } else if (error.includes('timeout') || error.includes('connection')) {
+                            return 'Connection timeout - please try again';
+                        } else if (error.includes('invalid') || error.includes('address')) {
+                            return 'Invalid token address format';
+                        } else if (error.includes('rugcheck')) {
+                            return 'Security data unavailable - token may be new';
+                        } else {
+                            return 'Token data unavailable - please verify address';
+                        }
+                }
+            }
+            
+            updateDisplays() {
+                document.getElementById('target-buy-display').textContent = document.getElementById('target-buy-price').value;
+                document.getElementById('target-sell-display').textContent = document.getElementById('target-sell-price').value;
+            }
+            
+            formatNumber(num) {
+                if (num >= 1000000) {
+                    return (num / 1000000).toFixed(1) + 'M';
+                } else if (num >= 1000) {
+                    return (num / 1000).toFixed(1) + 'K';
+                } else {
+                    return num.toFixed(0);
+                }
+            }
+            
+            formatTime(timestamp) {
+                const now = Math.floor(Date.now() / 1000);
+                const diff = now - timestamp;
+                
+                if (diff < 60) return `${diff}s ago`;
+                if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+                if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+                return `${Math.floor(diff / 86400)}d ago`;
+            }
+            
+            
+            async runAIAnalysis() {
+                try {
+                    console.log('🎯 AI Analysis requested by user');
+                    
+                    // Validate required inputs before proceeding
+                    const tokenAddress = document.getElementById('token-address').value.trim();
+                    
+                    if (!tokenAddress) {
+                        this.showAlert('warning', 'Please enter a token address before running analysis');
+                        return;
+                    }
+                    
+                    // Validate token address format (basic Solana address validation)
+                    if (tokenAddress.length < 32 || tokenAddress.length > 44) {
+                        this.showAlert('warning', 'Invalid token address format - must be 32-44 characters');
+                        return;
+                    }
+                    
+                    console.log(`🔍 Running analysis for token: ${tokenAddress}`);
+                    
+                    // Hide all other states, show loading
+                    document.getElementById('analysis-content').style.display = 'none';
+                    document.getElementById('analysis-results').style.display = 'none';
+                    document.getElementById('analysis-loading').style.display = 'block';
+                    
+                    // Update button state
+                    const btn = document.getElementById('run-analysis-btn');
+                    const icon = document.getElementById('analysis-icon');
+                    btn.disabled = true;
+                    icon.className = 'bi bi-hourglass-split';
+                    
+                    // Prepare request data including uploaded chart
+                    const requestData = {
+                        token_address: tokenAddress
+                    };
+                    
+                    // Include uploaded chart data if available
+                    if (uploadedChartData) {
+                        requestData.uploaded_chart = uploadedChartData;
+                        console.log('📊 Chart uploaded, including in analysis');
+                    }
+                    
+                    // Call AI analysis API with POST request to include chart data
+                    const response = await fetch(`/api/llm-analysis/${tokenAddress}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+                    const result = await response.json();
+                    
+                    // Hide loading state
+                    document.getElementById('analysis-loading').style.display = 'none';
+                    
+                    if (result.success) {
+                        // Display results in the analysis-results div with enhanced formatting
+                        const resultsDiv = document.getElementById('analysis-results');
+                        resultsDiv.innerHTML = this.formatAnalysisResults(result.analysis);
+                        resultsDiv.style.display = 'block';
+                        
+                        // Create support/resistance levels chart
+                        this.createLevelsChart(result.analysis);
+                        
+                        // Populate exit targets for all analyses
+                        this.populateExitTargets(result.analysis);
+                        
+                        this.showAlert('success', 'AI analysis completed successfully!');
+                    } else {
+                        throw new Error(result.error || 'Analysis failed');
+                    }
+                    
+                } catch (error) {
+                    console.error('AI analysis error:', error);
+                    this.showAlert('danger', `AI analysis failed: ${error.message}`);
+                    
+                    // Show default content on error
+                    document.getElementById('analysis-loading').style.display = 'none';
+                    document.getElementById('analysis-results').style.display = 'none';
+                    document.getElementById('analysis-content').style.display = 'block';
+                } finally {
+                    // Reset button state
+                    const btn = document.getElementById('run-analysis-btn');
+                    const icon = document.getElementById('analysis-icon');
+                    btn.disabled = false;
+                    icon.className = 'bi bi-lightning-charge';
+                }
+            }
+            
+            formatAnalysisResults(analysis) {
+                try {
+                    // Format the enhanced 5-model analysis results
+                    const models = analysis.analysisModels || [];
+                    
+                    return `
+                        <div class="analysis-formatted">
+                            <!-- Bootstrap Accordion for AI Analysis -->
+                            <div class="accordion" id="aiAnalysisAccordion">
+                                
+                                <!-- Overall Trading Signal -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingOverall">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOverall" aria-expanded="true" aria-controls="collapseOverall">
+                                            <i class="bi bi-bullseye text-dark me-2"></i>Overall Trading Signal
+                                        </button>
+                                    </h2>
+                                    <div id="collapseOverall" class="accordion-collapse collapse show" aria-labelledby="headingOverall" data-bs-parent="#aiAnalysisAccordion">
+                                        <div class="accordion-body">
+                                            <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+                                                <span class="badge ${this.getSignalBadgeClass(analysis.overallSignal)} fs-6">${analysis.overallSignal}</span>
+                                                ${analysis.tokenName || analysis.tokenSymbol ? `
+                                                <span class="text-primary fw-bold">
+                                                    <i class="bi bi-coin"></i> Token: ${analysis.tokenName || analysis.tokenSymbol || 'Unknown'}
+                                                </span>
+                                                ` : ''}
+                                                <span class="text-muted">Confidence: ${(analysis.confidence * 100).toFixed(1)}%</span>
+                                            </div>
+                                            <div class="row g-2">
+                                                <div class="col-6">
+                                                    <div class="text-success">
+                                                        <i class="bi bi-arrow-down-circle"></i> Entry Target: <strong>$${analysis.entryTarget?.toFixed(6) || 'N/A'}</strong>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="text-danger">
+                                                        <i class="bi bi-arrow-up-circle"></i> Exit Target: <strong>$${analysis.exitTarget?.toFixed(6) || 'N/A'}</strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Exit Target Selection -->
+                                            <div class="mt-4 mb-3">
+                                                <h6 class="text-dark mb-3"><i class="bi bi-target text-dark me-2"></i>Select Exit Target</h6>
+                                                <div class="row" id="exit-targets">
+                                                    <!-- Dynamic exit targets will be populated here -->
+                                                </div>
+                                                <div class="mt-3 text-center">
+                                                    <button type="button" class="btn btn-success btn-sm" id="accept-target-btn" disabled>
+                                                        <i class="bi bi-check-circle me-1"></i>Accept Selected Target
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Visual Technical Analysis - Combined when chart uploaded -->
+                                ${analysis.uploadedChart && analysis.uploadedChart.success && analysis.visualizationAnalysis ? `
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingVisualTechnical">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVisualTechnical" aria-expanded="false" aria-controls="collapseVisualTechnical">
+                                            <i class="bi bi-graph-up text-dark me-2"></i>Visual Technical Analysis
+                                        </button>
+                                    </h2>
+                                    <div id="collapseVisualTechnical" class="accordion-collapse collapse" aria-labelledby="headingVisualTechnical" data-bs-parent="#aiAnalysisAccordion">
+                                        <div class="accordion-body">
+                                            <!-- Uploaded Chart Display -->
+                                            <div class="mb-3">
+                                                <div class="alert alert-info">
+                                                    <i class="bi bi-upload"></i> <strong>User-Uploaded Chart Analysis</strong>
+                                                </div>
+                                                <div class="text-center">
+                                                    <img src="${analysis.uploadedChart.url}" alt="Uploaded Chart" 
+                                                         class="img-fluid rounded border" style="max-height: 400px; width: auto;">
+                                                    <small class="d-block text-muted mt-1">
+                                                        <i class="bi bi-file-image"></i> ${analysis.uploadedChart.filename}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Detailed Visual Analysis -->
+                                            <h6 class="text-success mb-2"><i class="bi bi-search text-dark me-2"></i>Detailed Visual Pattern Analysis</h6>
+                                            <div class="analysis-content mb-4">${this.formatAnalysisText(analysis.visualizationAnalysis)}</div>
+                                            
+                                            <!-- Technical Summary -->
+                                            <h6 class="text-primary mb-2"><i class="bi bi-bar-chart-line text-dark me-2"></i>Technical Summary</h6>
+                                            <div class="analysis-content">${this.formatAnalysisText(analysis.technicalAnalysis)}</div>
+                                            
+                                            <!-- Support/Resistance Chart -->
+                                            <div class="mt-3">
+                                                <canvas id="levelsChart" width="400" height="200"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                ` : ''}
+                                
+                                <!-- Technical Analysis - Only show when no visual analysis -->
+                                ${!analysis.visualizationAnalysis ? `
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingTechnical">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTechnical" aria-expanded="false" aria-controls="collapseTechnical">
+                                            <i class="bi bi-bar-chart text-dark me-2"></i>Technical Analysis
+                                        </button>
+                                    </h2>
+                                    <div id="collapseTechnical" class="accordion-collapse collapse" aria-labelledby="headingTechnical" data-bs-parent="#aiAnalysisAccordion">
+                                        <div class="accordion-body">
+                                            <div class="analysis-content">${this.formatAnalysisText(analysis.technicalAnalysis)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                ` : ''}
+                                
+                                <!-- Market Insights -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingInsights">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInsights" aria-expanded="false" aria-controls="collapseInsights">
+                                            <i class="bi bi-lightbulb text-dark me-2"></i>Market Insights
+                                        </button>
+                                    </h2>
+                                    <div id="collapseInsights" class="accordion-collapse collapse" aria-labelledby="headingInsights" data-bs-parent="#aiAnalysisAccordion">
+                                        <div class="accordion-body">
+                                            <div class="analysis-content">${this.formatAnalysisText(analysis.mlInsights)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Mathematical Analysis -->
+                                ${analysis.mathematicalAnalysis ? `
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingMath">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMath" aria-expanded="false" aria-controls="collapseMath">
+                                            <i class="bi bi-calculator text-dark me-2"></i>Mathematical Analysis
+                                        </button>
+                                    </h2>
+                                    <div id="collapseMath" class="accordion-collapse collapse" aria-labelledby="headingMath" data-bs-parent="#aiAnalysisAccordion">
+                                        <div class="accordion-body">
+                                            <div class="analysis-content">${this.formatAnalysisText(analysis.mathematicalAnalysis)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                ` : ''}
+                                
+                            </div>
+                            
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error('Error formatting analysis results:', error);
+                    return `<pre style="margin: 0; white-space: pre-wrap;">${JSON.stringify(analysis, null, 2)}</pre>`;
+                }
+            }
+            
+            getSignalBadgeClass(signal) {
+                switch(signal) {
+                    case 'STRONG_BUY': return 'bg-success';
+                    case 'BUY': return 'bg-success';
+                    case 'WEAK_BUY': return 'bg-info';
+                    case 'HOLD': return 'bg-warning';
+                    case 'SELL': return 'bg-danger';
+                    case 'STRONG_SELL': return 'bg-danger';
+                    default: return 'bg-secondary';
+                }
+            }
+            
+            formatAnalysisText(text) {
+                if (!text) return 'No analysis available';
+                
+                // Basic formatting for better readability
+                return text
+                    .replace(/#+ /g, '') // Remove all # symbols (single or multiple)
+                    .replace(/📊/g, '<i class="bi bi-bar-chart-line text-dark me-1"></i>') // Technical Summary icon
+                    .replace(/🎯/g, '<i class="bi bi-bullseye text-dark me-1"></i>') // Key Levels icon
+                    .replace(/📈/g, '<i class="bi bi-graph-up text-dark me-1"></i>') // Trading Outlook icon
+                    .replace(/⚠️/g, '<i class="bi bi-exclamation-triangle text-dark me-1"></i>') // Risk Factors icon
+                    .replace(/🔍/g, '<i class="bi bi-search text-dark me-1"></i>') // Analysis icon
+                    .replace(/💡/g, '<i class="bi bi-lightbulb text-dark me-1"></i>') // Insights icon
+                    .replace(/🔢/g, '<i class="bi bi-calculator text-dark me-1"></i>') // Mathematical icon
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold formatting
+                    .replace(/\n\n/g, '</p><p>') // Paragraph breaks
+                    .replace(/\n/g, '<br>') // Line breaks
+                    .replace(/^/, '<p>') // Start paragraph
+                    .replace(/$/, '</p>'); // End paragraph
+            }
+            
+            createLevelsChart(analysis) {
+                try {
+                    const canvas = document.getElementById('levelsChart');
+                    if (!canvas) return;
+                    
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Destroy existing chart if it exists
+                    if (this.levelsChart) {
+                        this.levelsChart.destroy();
+                    }
+                    
+                    const currentPrice = analysis.currentPrice || 0;
+                    const entryTarget = analysis.entryTarget || currentPrice * 0.99;
+                    const exitTarget = analysis.exitTarget || currentPrice * 1.1;
+                    
+                    // Create mock support/resistance levels based on entry/exit targets
+                    const support1 = entryTarget;
+                    const support2 = entryTarget * 0.95;
+                    const resistance1 = exitTarget;
+                    const resistance2 = exitTarget * 1.05;
+                    
+                    this.levelsChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Support 2', 'Support 1', 'Current', 'Resistance 1', 'Resistance 2'],
+                            datasets: [{
+                                label: 'Price Levels',
+                                data: [support2, support1, currentPrice, resistance1, resistance2],
+                                borderColor: ['#e53e3e', '#38a169', '#3182ce', '#dd6b20', '#e53e3e'],
+                                backgroundColor: ['rgba(229, 62, 62, 0.1)', 'rgba(56, 161, 105, 0.1)', 'rgba(49, 130, 206, 0.1)', 'rgba(221, 107, 32, 0.1)', 'rgba(229, 62, 62, 0.1)'],
+                                borderWidth: 2,
+                                pointRadius: 6,
+                                pointHoverRadius: 8
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: false,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '$' + value.toFixed(6);
+                                        }
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Support & Resistance Levels'
+                                }
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error creating levels chart:', error);
+                }
+            }
+            
+            populateExitTargets(analysis) {
+                try {
+                    const exitTargetsContainer = document.getElementById('exit-targets');
+                    const acceptBtn = document.getElementById('accept-target-btn');
+                    
+                    if (!exitTargetsContainer || !acceptBtn) return;
+                    
+                    // Store analysis data for use in applyExitTarget
+                    this.currentAnalysis = analysis;
+                    
+                    const currentPrice = analysis.currentPrice || 0;
+                    if (currentPrice === 0) return;
+                    
+                    // Get AI recommendation
+                    const recommendation = analysis.recommendedExitTarget || {};
+                    const recommendedPercentage = recommendation.percentage || 10;
+                    
+                    // Define resistance levels (5%, 10%, 15%, 20%)
+                    const resistanceLevels = [5, 10, 15, 20];
+                    
+                    // Clear previous targets
+                    exitTargetsContainer.innerHTML = '';
+                    
+                    // Create radio buttons for each resistance level
+                    resistanceLevels.forEach((percentage, index) => {
+                        const targetPrice = currentPrice * (1 + percentage / 100);
+                        const targetId = `exit-target-${percentage}`;
+                        const isRecommended = percentage === recommendedPercentage;
+                        
+                        const colDiv = document.createElement('div');
+                        colDiv.className = 'col-6 col-md-3 mb-2';
+                        
+                        // Determine styling based on recommendation
+                        let borderClass = 'border';
+                        let badgeHtml = '';
+                        let cardClass = '';
+                        
+                        if (isRecommended) {
+                            borderClass = 'border-dark border-3';
+                            cardClass = 'border-dark bg-light';
+                            badgeHtml = '<div class="mb-1"><span class="badge bg-dark text-white"><i class="bi bi-star-fill me-1"></i>AI Recommended</span></div>';
+                        }
+                        
+                        colDiv.innerHTML = `
+                            <div class="form-check p-3 ${borderClass} rounded ${cardClass}">
+                                <input class="form-check-input" type="radio" name="exitTarget" id="${targetId}" 
+                                       value="${targetPrice.toFixed(6)}" data-percentage="${percentage}" ${isRecommended ? 'checked' : ''}>
+                                <label class="form-check-label w-100" for="${targetId}">
+                                    ${badgeHtml}
+                                    <div class="text-center">
+                                        <strong>+${percentage}%</strong><br>
+                                        <small class="text-muted">$${targetPrice.toFixed(6)}</small>
+                                    </div>
+                                </label>
+                            </div>
+                        `;
+                        
+                        exitTargetsContainer.appendChild(colDiv);
+                        
+                        // Add event listener to radio button
+                        const radioBtn = colDiv.querySelector('input[type="radio"]');
+                        radioBtn.addEventListener('change', () => {
+                            if (radioBtn.checked) {
+                                acceptBtn.disabled = false;
+                                this.selectedExitTarget = {
+                                    price: targetPrice,
+                                    percentage: percentage
+                                };
+                            }
+                        });
+                        
+                        // Pre-select recommended target
+                        if (isRecommended) {
+                            acceptBtn.disabled = false;
+                            this.selectedExitTarget = {
+                                price: targetPrice,
+                                percentage: percentage
+                            };
+                        }
+                    });
+                    
+                    // Add reasoning display if available
+                    if (recommendation.reasoning) {
+                        const reasoningDiv = document.createElement('div');
+                        reasoningDiv.className = 'mt-3 p-2 bg-light border-start border-dark border-4';
+                        reasoningDiv.innerHTML = `
+                            <small class="text-muted">
+                                <i class="bi bi-lightbulb text-dark me-1"></i>
+                                <strong>AI Reasoning:</strong> ${recommendation.reasoning}
+                            </small>
+                        `;
+                        exitTargetsContainer.parentNode.insertBefore(reasoningDiv, exitTargetsContainer.nextSibling);
+                    }
+                    
+                    // Add accept button functionality
+                    acceptBtn.addEventListener('click', () => {
+                        if (this.selectedExitTarget) {
+                            this.applyExitTarget(this.selectedExitTarget);
+                        }
+                    });
+                    
+                } catch (error) {
+                    console.error('Error populating exit targets:', error);
+                }
+            }
+            
+            applyExitTarget(target) {
+                try {
+                    // Update both buy and sell price inputs in bot configuration
+                    const sellPriceInput = document.getElementById('target-sell-price');
+                    const buyPriceInput = document.getElementById('target-buy-price');
+                    
+                    let successMessage = '';
+                    
+                    // Update sell price with selected target
+                    if (sellPriceInput) {
+                        sellPriceInput.value = target.price.toFixed(6);
+                        sellPriceInput.dispatchEvent(new Event('input'));
+                        successMessage += `Exit target: +${target.percentage}% ($${target.price.toFixed(6)})`;
+                    }
+                    
+                    // Update buy price with AI's entry target if available
+                    if (buyPriceInput && this.currentAnalysis && this.currentAnalysis.entryTarget) {
+                        const entryTarget = this.currentAnalysis.entryTarget;
+                        buyPriceInput.value = entryTarget.toFixed(6);
+                        buyPriceInput.dispatchEvent(new Event('input'));
+                        
+                        if (successMessage) successMessage += ' • ';
+                        successMessage += `Entry target: $${entryTarget.toFixed(6)}`;
+                    }
+                    
+                    // Show success alert with both prices if available
+                    if (successMessage) {
+                        this.showAlert('success', `✅ AI Targets Applied: ${successMessage}`);
+                    }
+                    
+                    // Optional: Close the accordion after applying
+                    const collapseElement = document.getElementById('collapseOverall');
+                    if (collapseElement) {
+                        const collapse = new bootstrap.Collapse(collapseElement, {
+                            toggle: false
+                        });
+                        collapse.hide();
+                    }
+                } catch (error) {
+                    console.error('Error applying exit target:', error);
+                    this.showAlert('danger', 'Failed to apply targets');
+                }
+            }
+            
+            initializeMoralisChart() {
+                console.log('📊 Initializing Moralis chart widget...');
+                
+                // Load modern Moralis chart script if not already loaded
+                if (!this.isMoralisScriptReady) {
+                    this.loadMoralisChartScript();
+                } else {
+                    this.createModernChartWidget();
+                }
+            }
+            
+            loadMoralisChartScript() {
+                // Check if script is already loaded
+                if (document.querySelector('script[src*="moralis.com/static/embed/chart.js"]')) {
+                    this.isMoralisScriptReady = true;
+                    this.createModernChartWidget();
+                    return;
+                }
+                
+                console.log('📦 Loading modern Moralis chart script...');
+                const script = document.createElement('script');
+                script.src = 'https://moralis.com/static/embed/chart.js';
+                script.async = true;
+                script.onload = () => {
+                    console.log('✅ Modern Moralis chart script loaded');
+                    this.isMoralisScriptReady = true;
+                    this.createModernChartWidget();
+                };
+                script.onerror = () => {
+                    console.error('❌ Failed to load Moralis chart script');
+                    this.showChartError();
+                };
+                document.head.appendChild(script);
+            }
+            
+            async getPairAddressForToken(tokenAddress) {
+                try {
+                    console.log(`🔍 Fetching pair address for token: ${tokenAddress}`);
+                    
+                    // Use the existing token stats API to get pair address from DexScreener
+                    const response = await fetch(`/api/token-stats/${tokenAddress}`);
+                    const result = await response.json();
+                    
+                    if (result.success && result.data) {
+                        const pairAddress = result.data.pair_address;
+                        if (pairAddress && pairAddress.trim() !== '') {
+                            console.log(`✅ Found pair address: ${pairAddress}`);
+                            return pairAddress;
+                        }
+                    }
+                    
+                    console.warn('⚠️ No pair address found in token stats');
+                    return null;
+                    
+                } catch (error) {
+                    console.error('❌ Error fetching pair address:', error);
+                    return null;
+                }
+            }
+            
+            async createModernChartWidget() {
+                try {
+                    console.log('🎨 Creating modern Moralis chart widget...');
+                    
+                    // Show loading state
+                    this.showChartLoading();
+                    
+                    // Only create widget if we have a valid token address
+                    if (!this.currentTokenAddress || this.currentTokenAddress.trim() === '') {
+                        console.log('⚠️ No token address for chart widget');
+                        this.showChartError();
+                        return;
+                    }
+                    
+                    // First, get the pair address from DexScreener API
+                    const pairAddress = await this.getPairAddressForToken(this.currentTokenAddress);
+                    if (!pairAddress) {
+                        console.log('⚠️ No pair address found for token');
+                        this.showChartError();
+                        return;
+                    }
+                    
+                    console.log(`📊 Using pair address: ${pairAddress}`);
+                    
+                    // Wait for createMyWidget to be available
+                    if (typeof window.createMyWidget !== 'function') {
+                        console.log('⏳ Waiting for createMyWidget to be available...');
+                        setTimeout(() => this.createModernChartWidget(), 500);
+                        return;
+                    }
+                    
+                    // Clear existing widget
+                    const container = document.getElementById('price-chart-widget-container');
+                    if (container) {
+                        container.innerHTML = '';
+                    }
+                    
+                    // Create modern widget with your exact implementation
+                    window.createMyWidget('price-chart-widget-container', {
+                        autoSize: true,
+                        chainId: 'solana',
+                        pairAddress: pairAddress,
+                        showHoldersChart: true,
+                        defaultInterval: '5',
+                        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'Etc/UTC',
+                        theme: 'light',
+                        locale: 'en',
+                        hideLeftToolbar: false,
+                        hideTopToolbar: false,
+                        hideBottomToolbar: false
+                    });
+                    
+                    console.log('✅ Modern Moralis chart widget created');
+                    this.isChartInitialized = true;
+                    this.hideChartLoading();
+                    this.updateChartTokenSymbol();
+                    
+                } catch (error) {
+                    console.error('❌ Error creating modern chart widget:', error);
+                    this.showChartError();
+                }
+            }
+            
+            async updateMoralisChart(tokenAddress) {
+                if (!tokenAddress || tokenAddress.trim() === '') {
+                    this.showChartError();
+                    return;
+                }
+                
+                try {
+                    console.log(`📊 Updating chart for token: ${tokenAddress}`);
+                    
+                    // Update current token address
+                    this.currentTokenAddress = tokenAddress;
+                    
+                    // For modern widget, we need to recreate it with the new pair address
+                    // The modern Moralis widget doesn't support dynamic updates, so we recreate
+                    this.isChartInitialized = false;
+                    this.createModernChartWidget();
+                    
+                } catch (error) {
+                    console.error('❌ Error updating Moralis chart:', error);
+                    this.showChartError();
+                }
+            }
+            
+            updateChartTokenSymbol() {
+                try {
+                    const symbolElement = document.querySelector('.token-symbol');
+                    if (symbolElement) {
+                        // Try to get symbol from current stats or use default
+                        const currentSymbol = this.getTokenSymbolSafely();
+                        symbolElement.textContent = currentSymbol;
+                    }
+                } catch (error) {
+                    console.error('Error updating chart token symbol:', error);
+                }
+            }
+            
+            getTokenSymbolSafely() {
+                try {
+                    const statsSymbol = document.querySelector('.token-symbol');
+                    if (statsSymbol && statsSymbol.textContent.trim()) {
+                        return statsSymbol.textContent.trim();
+                    }
+                    return 'TOKEN';
+                } catch (error) {
+                    return 'TOKEN';
+                }
+            }
+            
+            showChartLoading() {
+                document.getElementById('price-chart-widget-container').style.display = 'none';
+                document.getElementById('chart-error').style.display = 'none';
+                document.getElementById('chart-empty').style.display = 'none';
+                document.getElementById('chart-loading').style.display = 'block';
+            }
+            
+            hideChartLoading() {
+                document.getElementById('chart-loading').style.display = 'none';
+                document.getElementById('chart-error').style.display = 'none';
+                document.getElementById('chart-empty').style.display = 'none';
+                document.getElementById('price-chart-widget-container').style.display = 'block';
+            }
+            
+            showChartError() {
+                document.getElementById('chart-loading').style.display = 'none';
+                document.getElementById('price-chart-widget-container').style.display = 'none';
+                document.getElementById('chart-empty').style.display = 'none';
+                document.getElementById('chart-error').style.display = 'block';
+            }
+            
+            showChartEmpty() {
+                document.getElementById('chart-loading').style.display = 'none';
+                document.getElementById('price-chart-widget-container').style.display = 'none';
+                document.getElementById('chart-error').style.display = 'none';
+                document.getElementById('chart-empty').style.display = 'block';
+            }
+            
+            showAlert(type, message) {
+                const alertContainer = document.getElementById('alert-container');
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type} alert-dismissible fade show`;
+                alert.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                
+                alertContainer.appendChild(alert);
+                
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.remove();
+                    }
+                }, 5000);
+            }
+            
+            // Bidirectional token address synchronization
+            syncTokenAddresses(newValue, source) {
+                const analysisInput = document.getElementById('token-address');
+                const chartInput = document.getElementById('chart-token-address');
+                
+                if (!analysisInput || !chartInput) return;
+                
+                // Update the other input based on the source
+                if (source === 'analysis' && chartInput.value !== newValue) {
+                    chartInput.value = newValue;
+                    console.log(`🔄 Synced token address from analysis to chart: ${newValue}`);
+                } else if (source === 'chart' && analysisInput.value !== newValue) {
+                    analysisInput.value = newValue;
+                    console.log(`🔄 Synced token address from chart to analysis: ${newValue}`);
+                }
+                
+                // Update the current token address
+                this.currentTokenAddress = newValue;
+                
+                // Update the Moralis chart if a valid address is provided
+                if (newValue && newValue.length > 20) {
+                    this.updateMoralisChart(newValue);
+                }
+            }
+            
+            // Load chart for the current token address in chart input
+            loadChartForToken() {
+                const chartTokenInput = document.getElementById('chart-token-address');
+                const tokenAddress = chartTokenInput ? chartTokenInput.value.trim() : '';
+                
+                if (!tokenAddress) {
+                    this.showAlert('warning', 'Please enter a token address in the chart section');
+                    return;
+                }
+                
+                // Validate token address format (basic validation)
+                if (tokenAddress.length < 32 || tokenAddress.length > 44) {
+                    this.showAlert('warning', 'Invalid token address format');
+                    return;
+                }
+                
+                console.log(`📊 Loading chart for token: ${tokenAddress}`);
+                
+                // Sync with analysis input
+                this.syncTokenAddresses(tokenAddress, 'chart');
+                
+                // Update the Moralis chart
+                this.updateMoralisChart(tokenAddress);
+                
+                // Show success message
+                this.showAlert('success', `Chart loaded for token: ${tokenAddress.substring(0, 8)}...`);
+            }
+        }
+        
+        // Chart upload handling functions
+        let uploadedChartData = null;
+        
+        function handleChartUpload(input) {
+            const file = input.files[0];
+            if (file) {
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file');
+                    input.value = '';
+                    return;
+                }
+                
+                // Check file size (limit to 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    input.value = '';
+                    return;
+                }
+                
+                // Read file and show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('chart-preview');
+                    const previewImg = document.getElementById('chart-preview-img');
+                    
+                    previewImg.src = e.target.result;
+                    preview.style.display = 'block';
+                    
+                    // Store the base64 data for upload
+                    uploadedChartData = {
+                        filename: file.name,
+                        data: e.target.result.split(',')[1], // Remove data:image/... prefix
+                        mimeType: file.type
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function removeChartUpload() {
+            document.getElementById('chart-upload').value = '';
+            document.getElementById('chart-preview').style.display = 'none';
+            uploadedChartData = null;
+        }
+        
+        // Setup Modal Functions
+        function togglePasswordField(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+
+        function showSetupAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('setup-alert-container');
+            const alert = document.getElementById('setup-alert');
+            const alertMessage = document.getElementById('setup-alert-message');
+            
+            alertMessage.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alertContainer.style.display = 'block';
+            
+            // Auto-hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    alertContainer.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        function validateBase58PrivateKey(key) {
+            // Basic validation for Base58 Solana private key
+            if (!key || key.length < 64 || key.length > 88) return false;
+            
+            // Base58 alphabet check
+            const base58Regex = /^[1-9A-HJ-NP-Za-km-z]+$/;
+            return base58Regex.test(key);
+        }
+
+        async function saveSetupConfiguration() {
+            const saveBtn = document.getElementById('save-setup-btn');
+            const originalText = saveBtn.innerHTML;
+            
+            try {
+                // Show loading state
+                saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+                saveBtn.disabled = true;
+                
+                // Get form values
+                const config = {
+                    wallet_private_key: document.getElementById('walletPrivateKey').value.trim(),
+                    rpc_url: document.getElementById('rpcUrl').value.trim(),
+                    groq_api_key: document.getElementById('groqApiKey').value.trim(),
+                    telegram_bot_token: document.getElementById('telegramBotToken').value.trim(),
+                    telegram_chat_id: document.getElementById('telegramChatId').value.trim(),
+                    cloudflare_account_id: document.getElementById('cloudflareAccountId').value.trim(),
+                    cloudflare_api_token: document.getElementById('cloudflareApiToken').value.trim()
+                };
+                
+                // Validate required fields
+                if (!config.wallet_private_key) {
+                    showSetupAlert('Wallet private key is required!', 'danger');
+                    return;
+                }
+                
+                if (!validateBase58PrivateKey(config.wallet_private_key)) {
+                    showSetupAlert('Invalid wallet private key format. Please check your Base58 private key.', 'danger');
+                    return;
+                }
+                
+                if (!config.rpc_url) {
+                    showSetupAlert('RPC URL is required!', 'danger');
+                    return;
+                }
+                
+                if (!config.groq_api_key) {
+                    showSetupAlert('Groq API key is required for AI analysis features!', 'danger');
+                    return;
+                }
+                
+                // Save configuration
+                const response = await fetch('/api/setup/save-env', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Check if configuration was auto-reloaded
+                    const message = result.auto_reloaded ? 
+                        result.message : 
+                        'Configuration saved successfully! Please restart the server to apply changes.';
+                    
+                    showSetupAlert(message, 'success');
+                    
+                    // If configuration was auto-reloaded, immediately update wallet balance
+                    if (result.auto_reloaded && typeof window.botUI !== 'undefined') {
+                        setTimeout(() => {
+                            window.botUI.updateWalletBalance();
+                        }, 1000); // Give the backend a moment to fully reload
+                    }
+                    
+                    // Clear form fields for security
+                    setTimeout(() => {
+                        document.getElementById('walletPrivateKey').value = '';
+                        document.getElementById('groqApiKey').value = '';
+                        document.getElementById('telegramBotToken').value = '';
+                        document.getElementById('cloudflareApiToken').value = '';
+                        
+                        // Close modal after successful save
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('setupModal'));
+                        if (modal) modal.hide();
+                    }, 2000);
+                    
+                } else {
+                    showSetupAlert(result.message || 'Failed to save configuration', 'danger');
+                }
+                
+            } catch (error) {
+                console.error('Setup save error:', error);
+                showSetupAlert('Error saving configuration. Please try again.', 'danger');
+            } finally {
+                // Restore button state
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            }
+        }
+
+        // Initialize the enhanced UI when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.botUI = new ProfessionalJupiterBotUI();
+            window.tradingBot = window.botUI; // Alias for compatibility
+            
+            // Start wallet balance polling immediately on page load
+            console.log('🚀 Starting wallet balance polling on page load');
+            window.botUI.updateWalletBalance(); // Initial call
+            window.botUI.walletInterval = setInterval(() => {
+                console.log('💰 Wallet balance polling tick');
+                window.botUI.updateWalletBalance();
+            }, 2000); // Every 2 seconds for real-time trading feedback
+            
+            // Setup password toggle event listeners
+            document.getElementById('toggleWalletKey').addEventListener('click', () => {
+                togglePasswordField('walletPrivateKey', 'walletKeyIcon');
+            });
+            
+            document.getElementById('toggleGroqKey').addEventListener('click', () => {
+                togglePasswordField('groqApiKey', 'groqKeyIcon');
+            });
+            
+            document.getElementById('toggleTelegramToken').addEventListener('click', () => {
+                togglePasswordField('telegramBotToken', 'telegramTokenIcon');
+            });
+            
+            document.getElementById('toggleCloudflareToken').addEventListener('click', () => {
+                togglePasswordField('cloudflareApiToken', 'cloudflareTokenIcon');
+            });
+            
+            // Setup save button event listener
+            document.getElementById('save-setup-btn').addEventListener('click', saveSetupConfiguration);
+        });
+    </script>
+
+    <!-- Close Position Confirmation Modal -->
+    <div class="modal fade" id="closePositionModal" tabindex="-1" aria-labelledby="closePositionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="closePositionModalLabel">
+                        <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                        Close Trade Position
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <strong>Warning:</strong> This will immediately sell all your tokens at market price.
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Token Balance:</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            <span id="close-position-token-balance">-- TOKEN</span>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <strong>Estimated SOL:</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            <span id="close-position-estimated-sol">~-- SOL</span>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <strong>DEX:</strong>
+                        </div>
+                        <div class="col-6 text-end">
+                            <span id="close-position-dex">--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirm-close-position-btn">
+                        <i class="bi bi-box-arrow-right"></i> Close Position
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup Modal -->
+    <div class="modal fade" id="setupModal" tabindex="-1" aria-labelledby="setupModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="setupModalLabel">
+                        <i class="bi bi-gear-fill text-dark me-2"></i>
+                        Solara Setup
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Alert container for feedback -->
+                    <div id="setup-alert-container" class="mb-3" style="display: none;">
+                        <div class="alert" role="alert" id="setup-alert">
+                            <span id="setup-alert-message"></span>
+                        </div>
+                    </div>
+
+                    <!-- Required Configuration Section -->
+                    <h6 class="text-dark mb-3">
+                        <i class="bi bi-shield-check text-dark"></i> Required Configuration
+                    </h6>
+                    
+                    <!-- Wallet Private Key -->
+                    <div class="mb-3">
+                        <label for="walletPrivateKey" class="form-label">
+                            <i class="bi bi-key-fill text-dark me-1"></i> Wallet Private Key <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="walletPrivateKey" 
+                                   placeholder="Enter your Solana wallet private key (Base58 format)"
+                                   aria-describedby="walletPrivateKeyHelp">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleWalletKey">
+                                <i class="bi bi-eye" id="walletKeyIcon"></i>
+                            </button>
+                        </div>
+                        <div id="walletPrivateKeyHelp" class="form-text">
+                            <i class="bi bi-info-circle"></i> Your private key is stored locally and never shared. Keep it secure!
+                        </div>
+                    </div>
+
+                    <!-- RPC URL -->
+                    <div class="mb-3">
+                        <label for="rpcUrl" class="form-label">
+                            <i class="bi bi-globe text-dark me-1"></i> RPC URL <span class="text-danger">*</span>
+                        </label>
+                        <input type="url" class="form-control" id="rpcUrl" 
+                               value="https://api.mainnet-beta.solana.com"
+                               placeholder="https://api.mainnet-beta.solana.com"
+                               aria-describedby="rpcUrlHelp">
+                        <div id="rpcUrlHelp" class="form-text">
+                            <i class="bi bi-info-circle"></i> Default free RPC works fine. Use paid RPC (QuickNode, Helius) for better performance.
+                        </div>
+                    </div>
+
+                    <!-- Groq API Key -->
+                    <div class="mb-4">
+                        <label for="groqApiKey" class="form-label">
+                            <i class="bi bi-robot text-dark me-1"></i> Groq API Key <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="groqApiKey" 
+                                   placeholder="Enter your Groq API key (required for AI analysis)"
+                                   aria-describedby="groqApiKeyHelp">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleGroqKey">
+                                <i class="bi bi-eye" id="groqKeyIcon"></i>
+                            </button>
+                        </div>
+                        <div id="groqApiKeyHelp" class="form-text">
+                            <i class="bi bi-info-circle"></i> Get your free API key at <a href="https://console.groq.com" target="_blank">console.groq.com</a>. Required for AI analysis features.
+                        </div>
+                    </div>
+
+                    <!-- Optional Configuration Section -->
+                    <h6 class="text-dark mb-3">
+                        <i class="bi bi-plus-circle text-dark"></i> Optional Features
+                    </h6>
+
+                    <!-- Telegram Bot Token -->
+                    <div class="mb-3">
+                        <label for="telegramBotToken" class="form-label">
+                            <i class="bi bi-telegram text-dark me-1"></i> Telegram Bot Token
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="telegramBotToken" 
+                                   placeholder="Enter your Telegram bot token (optional)"
+                                   aria-describedby="telegramBotTokenHelp">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleTelegramToken">
+                                <i class="bi bi-eye" id="telegramTokenIcon"></i>
+                            </button>
+                        </div>
+                        <div id="telegramBotTokenHelp" class="form-text">
+                            <i class="bi bi-info-circle"></i> Create a bot with @BotFather on Telegram for trade notifications.
+                        </div>
+                    </div>
+
+                    <!-- Telegram Chat ID -->
+                    <div class="mb-3">
+                        <label for="telegramChatId" class="form-label">
+                            <i class="bi bi-chat-text text-dark me-1"></i> Telegram Chat ID
+                        </label>
+                        <input type="text" class="form-control" id="telegramChatId" 
+                               placeholder="Your Telegram chat ID (optional)"
+                               aria-describedby="telegramChatIdHelp">
+                        <div id="telegramChatIdHelp" class="form-text">
+                            <i class="bi bi-info-circle"></i> Use @userinfobot to get your chat ID. Required only if using Telegram notifications.
+                        </div>
+                    </div>
+
+                    <!-- Advanced Options -->
+                    <div class="accordion" id="advancedOptionsAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAdvanced">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseAdvanced" aria-expanded="false" aria-controls="collapseAdvanced">
+                                    <i class="bi bi-sliders text-secondary me-2"></i>Advanced Options
+                                </button>
+                            </h2>
+                            <div id="collapseAdvanced" class="accordion-collapse collapse" 
+                                 aria-labelledby="headingAdvanced" data-bs-parent="#advancedOptionsAccordion">
+                                <div class="accordion-body">
+                                    <!-- Cloudflare API Keys -->
+                                    <div class="mb-3">
+                                        <label for="cloudflareAccountId" class="form-label">
+                                            <i class="bi bi-cloud text-dark me-1"></i> Cloudflare Account ID
+                                        </label>
+                                        <input type="text" class="form-control" id="cloudflareAccountId" 
+                                               placeholder="Cloudflare Account ID (optional)">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="cloudflareApiToken" class="form-label">
+                                            <i class="bi bi-cloud-fill text-dark me-1"></i> Cloudflare API Token
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="cloudflareApiToken" 
+                                                   placeholder="Cloudflare API Token (optional)">
+                                            <button class="btn btn-outline-secondary" type="button" id="toggleCloudflareToken">
+                                                <i class="bi bi-eye" id="cloudflareTokenIcon"></i>
+                                            </button>
+                                        </div>
+                                        <div class="form-text">
+                                            <i class="bi bi-info-circle"></i> Optional additional AI models via Cloudflare Workers AI.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="save-setup-btn">
+                        <i class="bi bi-check-circle"></i> Save Configuration
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
