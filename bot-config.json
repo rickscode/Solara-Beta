@@ -1,0 +1,11 @@
+{
+  "token_address": "",
+  "token_symbol": "",
+  "target_buy_price": "",
+  "target_sell_price": "",
+  "stop_loss_percentage": "",
+  "amount_to_trade": "",
+  "slippage_bps": 200,
+  "dex_type": "jupiter",
+  "last_updated": "2025-08-02T07:02:34.148883"
+}
