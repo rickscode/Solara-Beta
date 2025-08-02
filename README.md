@@ -32,8 +32,8 @@
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/rickscode/Solara-Beta-.git
-cd Solara-Beta-
+git clone https://github.com/rickscode/Solara-Beta.git
+cd Solara-Beta
 ```
 
 ### 2. Install Node.js Dependencies
@@ -182,7 +182,7 @@ This project is released under the MIT License. See LICENSE file for details.
 
 **Help us build a safer Solana ecosystem!**
 
-- **🐙 GitHub**: [https://github.com/rickscode/Solara-Beta-](https://github.com/rickscode/Solara-Beta-)
+- **🐙 GitHub**: [https://github.com/rickscode/Solara-Beta](https://github.com/rickscode/Solara-Beta)
 - **⭐ Star the repo** if this saved you from a rugpull
 - **🔄 Share with friends** - Protect the entire community
 - **💬 Join discussions** in GitHub Issues
